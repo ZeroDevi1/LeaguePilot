@@ -23,6 +23,7 @@ import { LoggerFactoryMain } from '@main/shards/logger-factory'
 import { MobxUtilsMain } from '@main/shards/mobx-utils'
 import { OngoingGameMain } from '@main/shards/ongoing-game'
 import { RendererDebugMain } from '@main/shards/renderer-debug'
+import { ResgMain } from '@main/shards/resg'
 import { RespawnTimerMain } from '@main/shards/respawn-timer'
 import { RiotClientMain } from '@main/shards/riot-client'
 import { SavedPlayerMain } from '@main/shards/saved-player'
@@ -335,6 +336,7 @@ export function bootstrap() {
     manager.use(AutoMiscMain)
     manager.use(AutoSelectMain)
     manager.use(InGameSendMain)
+    manager.use(ResgMain)
     manager.use(OngoingGameMain)
     manager.use(RespawnTimerMain)
     manager.use(SavedPlayerMain)

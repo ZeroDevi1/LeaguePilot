@@ -2,9 +2,17 @@
   <div>
     <!-- buttons + tabs -->
     <div class="mb-1 flex items-center gap-1">
-      <a href="https://op.gg" :title="t('opgg.filters.toOpgg')" target="_blank">
-        <OpggIcon class="block size-8 text-blue-500 dark:text-white" />
-      </a>
+      <NSelect
+        size="small"
+        class="w-21!"
+        :placeholder="t('opgg.filters.provider')"
+        :value="provider"
+        :options="providerOptions"
+        :render-label="renderLabel"
+        :consistent-menu-width="false"
+        :disabled="isLoading"
+        @update:value="changeProvider"
+      />
 
       <!-- refresh -->
       <NButton
@@ -48,15 +56,16 @@
       <NSelect
         size="small"
         :placeholder="t('opgg.filters.mode')"
-        :options="modeOptions"
-        :value="mode"
+        :options="provider === 'resg' ? resgModeOptions : modeOptions"
+        :value="provider === 'resg' ? 'aram' : mode"
         @update:value="changeMode"
         :render-label="renderLabel"
         class="w-0! flex-1"
         :consistent-menu-width="false"
-        :disabled="isLoading"
+        :disabled="isLoading || provider === 'resg'"
       />
       <NSelect
+        v-if="provider === 'opgg'"
         size="small"
         :placeholder="t('opgg.filters.region')"
         :options="regionOptions"
@@ -68,6 +77,7 @@
         :disabled="isLoading"
       />
       <NSelect
+        v-if="provider === 'opgg'"
         size="small"
         :placeholder="t('opgg.filters.rankTier')"
         :options="tierOptions"
@@ -79,6 +89,7 @@
         :disabled="isLoading || mode === 'arena'"
       />
       <NSelect
+        v-if="provider === 'opgg'"
         size="small"
         :placeholder="t('opgg.filters.position')"
         :options="positionOptions"
@@ -92,7 +103,7 @@
       <NSelect
         size="small"
         :placeholder="t('opgg.filters.version')"
-        :value="version"
+        :value="provider === 'resg' ? resgVersion : version"
         :options="versionOptions"
         @update:value="changeVersion"
         :render-label="renderLabel"
@@ -118,7 +129,6 @@ import {
   useRegionOptions,
   useTierOptions
 } from '@opgg-window/opgg/utils/options'
-import OpggIcon from '@renderer-shared/assets/icon/OpggIcon.vue'
 import ChampionIcon from '@renderer-shared/components/widgets/ChampionIcon.vue'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
 import { RefreshSharp, Settings } from '@vicons/ionicons5'
@@ -134,14 +144,18 @@ const lcs = useLeagueClientStore()
 
 const {
   currentTab,
+  provider,
   mode,
   versions,
   version,
+  resgVersions,
+  resgVersion,
   tier,
   position,
   region,
   isLoading,
   championId,
+  changeProvider,
   changeMode,
   changePosition,
   changeRegion,
@@ -158,8 +172,16 @@ const { regionOptions } = useRegionOptions()
 const { tierOptions } = useTierOptions()
 const { positionOptions } = usePositionOptions(mode)
 
+const providerOptions = [
+  { label: 'OP.GG', value: 'opgg' },
+  { label: 'RESG', value: 'resg' }
+]
+const resgModeOptions = computed(() => [{ label: t('opgg.filters.modes.aram'), value: 'aram' }])
+
 const versionOptions = computed(() =>
-  versions.value.map((version) => ({ label: version, value: version }))
+  (provider.value === 'resg' ? resgVersions.value.map((item) => item.version) : versions.value).map(
+    (item) => ({ label: item, value: item })
+  )
 )
 
 const renderLabel: SelectRenderLabel = (option) => {

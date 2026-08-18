@@ -6,6 +6,7 @@ opgg:
     unpin: 取消置顶
     repositionToAlignLeagueClientUx: 贴附到客户端
   filters:
+    provider: 数据源
     toOpgg: 转到 OP.GG
     refresh: 刷新
     champions: 梯队
@@ -72,6 +73,7 @@ opgg:
       pickRate: 登场率
       counter: 劣势对位
       banRate: 禁用率
+      matches: 场次
     cancel: 取消
   view:
     replace: 提供
@@ -108,6 +110,32 @@ opgg:
     runesSet: '[$t(common:appName)] 已{{action}}符文配法: {{name}}'
     sessionChampions:
       title: 本局英雄
+  resg:
+    title: RESG 大乱斗攻略
+    version: 数据版本 {{version}}
+    aramOnly: 仅大乱斗 · 实时单英雄查询
+    importItems: 导入 RESG 出装
+    loadFailed: RESG 数据暂不可用：{{reason}}
+    linkedItems: 海克斯关联出装
+    augmentCombos: 海克斯组合统计
+    augmentComboSizeLabel: 海克斯组合数量
+    recommendedAugments: 单海克斯统计
+    singleItems: 单件装备统计
+    coreItemCombos: 核心装备组合统计
+    itemComboSizeLabel: 核心装备组合数量
+    linkedBuild: 关联出装
+    showLinkedBuilds: 展开关联出装
+    hideLinkedBuilds: 收起关联出装
+    winRateValue: 胜率 {{rate}}%
+    pickRateValue: 选取率 {{rate}}%
+    wins: '{{wins}} 胜'
+    augmentCount: '{{count}} 个海克斯'
+    itemCount: '{{count}} 件装备'
+    showAll: 展开全部
+    showLess: 收起
+    starterGroup: 'RESG 起始装备 #{{index}}'
+    bootsGroup: RESG 鞋子
+    linkedItemGroup: 'RESG 核心出装 #{{index}}'
   champion:
     boots: 鞋子
     adorableRabi: 兔兔好可爱

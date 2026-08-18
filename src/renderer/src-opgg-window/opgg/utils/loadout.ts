@@ -10,6 +10,28 @@ import { useMessage } from 'naive-ui'
 
 import { restoreRecipe } from './recipe-restore'
 
+/** 一个可写入英雄联盟客户端的装备分组。 */
+export interface GuideItemSetGroup {
+  /** 客户端装备页中显示的分组标题。 */
+  title: string
+  /** 按展示顺序排列的 Riot 装备 ID。 */
+  items: number[]
+}
+
+/** 已由数据源适配器准备好的装备页。 */
+export interface GuideItemSet {
+  /** 稳定数据源 ID，用于生成不会与其他来源碰撞的 UID。 */
+  sourceId: string
+  /** 面向用户的数据源标签，例如 `OP.GG` 或 `RESG`。 */
+  sourceLabel: string
+  /** Riot 英雄数字 ID。 */
+  championId: number
+  /** 数据版本；来源没有版本时可省略。 */
+  version?: string
+  /** 要写入客户端的装备分组；空分组不会产生有效装备页。 */
+  itemGroups: GuideItemSetGroup[]
+}
+
 export function useLoadout() {
   const lc = useInstance(LeagueClientRenderer)
   const log = useInstance(LoggerRenderer)
@@ -175,6 +197,7 @@ export function useLoadout() {
   }
 
   const toItemSetsUid = (traits: {
+    sourceId?: string
     championId: number
     mode?: string
     region?: string
@@ -182,14 +205,22 @@ export function useLoadout() {
     position?: string
     version?: string
   }) => {
-    return `akari1-${traits.championId}-${traits.mode || '_'}-${traits.region || '_'}-${traits.tier || '_'}-${traits.position || '_'}-${traits.version || '_'}`
+    // 保留既有 OP.GG UID 契约；其它来源在前缀中加入 sourceId，避免互相覆盖。
+    const prefix =
+      !traits.sourceId || traits.sourceId === 'opgg' ? 'akari1' : `akari1-${traits.sourceId}`
+    return `${prefix}-${traits.championId}-${traits.mode || '_'}-${traits.region || '_'}-${traits.tier || '_'}-${traits.position || '_'}-${traits.version || '_'}`
   }
 
-  const getItemSetsTitle = (options: { championId: number; mode: string; position: string }) => {
-    const { championId, mode, position } = options
+  const getItemSetsTitle = (options: {
+    sourceLabel: string
+    championId: number
+    mode: string
+    position: string
+  }) => {
+    const { sourceLabel, championId, mode, position } = options
 
     const championName = lcs.gameData.championName(championId)
-    let title = `[OP.GG] ${championName}`
+    let title = `[${sourceLabel}] ${championName}`
 
     if (mode) {
       const modeName = t(`opgg.filters.modes.${mode}`)
@@ -205,11 +236,15 @@ export function useLoadout() {
     return title
   }
 
-  const getItemSetsChatName = (options: { championId: number; position: string }) => {
-    const { championId, position } = options
+  const getItemSetsChatName = (options: {
+    sourceLabel: string
+    championId: number
+    position: string
+  }) => {
+    const { sourceLabel, championId, position } = options
 
     const championName = lcs.gameData.championName(championId)
-    let name = `[OP.GG] ${championName}`
+    let name = `[${sourceLabel}] ${championName}`
 
     const hasPosition = position && position !== 'none'
     if (hasPosition) {
@@ -220,6 +255,96 @@ export function useLoadout() {
     return name
   }
 
+  /**
+   * 把标准化装备页写入客户端，并沿用现有成功提示和选人聊天通知。
+   *
+   * @param itemSet 已准备好的数据源、英雄、版本与装备分组。
+   * @param meta 当前攻略筛选元数据，用于生成稳定 UID 和可读标题。
+   * @returns 写入流程完成后无返回值；失败会记录日志并显示警告，不向 UI 抛出。
+   */
+  const writeItemSet = async (
+    itemSet: GuideItemSet,
+    meta: {
+      position: string
+      mode: string
+      region: string
+      tier: string
+    }
+  ) => {
+    try {
+      const newUid = toItemSetsUid({
+        sourceId: itemSet.sourceId,
+        championId: itemSet.championId,
+        mode: meta.mode,
+        region: meta.region,
+        tier: meta.tier,
+        position: meta.position,
+        version: itemSet.version
+      })
+
+      await lc.writeItemSetsToDisk([
+        {
+          uid: newUid,
+          title: getItemSetsTitle({
+            sourceLabel: itemSet.sourceLabel,
+            championId: itemSet.championId,
+            mode: meta.mode,
+            position: meta.position
+          }),
+          sortrank: 0,
+          type: 'global',
+          map: 'any',
+          mode: 'any',
+          blocks: itemSet.itemGroups.map((group) => ({
+            type: group.title,
+            items: group.items.map((itemId) => ({
+              id: restoreRecipe(itemId).toString(),
+              count: 1
+            }))
+          })),
+          associatedChampions: [],
+          associatedMaps: [],
+          preferredItemSlots: []
+        }
+      ])
+
+      message.success(t('opgg.champion.writtenToDisk'))
+
+      if (lcs.chat.conversations.championSelect) {
+        lc.api.chat
+          .chatSend(
+            lcs.chat.conversations.championSelect.id,
+            t('opgg.champion.writeToDisk', {
+              name: getItemSetsChatName({
+                sourceLabel: itemSet.sourceLabel,
+                championId: itemSet.championId,
+                position: meta.position
+              })
+            }),
+            'celebration'
+          )
+          .catch((error) => {
+            log.warn(componentName, 'Failed to send item sets message', error)
+          })
+      }
+    } catch (error) {
+      log.warn(componentName, 'write item sets failed', error)
+
+      message.warning(
+        t('opgg.champion.writeFileFailedMessage', {
+          reason: (error as Error).message
+        })
+      )
+    }
+  }
+
+  /**
+   * 把 OP.GG 英雄响应转换成标准装备页并写入客户端。
+   *
+   * @param champion OP.GG 英雄攻略响应。
+   * @param meta 当前攻略筛选元数据。
+   * @returns 写入流程完成后无返回值；失败策略与 `writeItemSet` 一致。
+   */
   const writeItemSets = async (
     champion: OpggChampionBuildResponse,
     meta: {
@@ -232,15 +357,6 @@ export function useLoadout() {
     try {
       const itemGroups: Array<{ title: string; items: number[] }> = []
       const championId = champion.data.summary.id
-
-      const newUid = toItemSetsUid({
-        championId,
-        mode: meta.mode,
-        region: meta.region,
-        tier: meta.tier,
-        position: meta.position,
-        version: champion.meta.version
-      })
 
       if (champion.data.starter_items && champion.data.starter_items.length) {
         champion.data.starter_items.slice(0, 3).forEach((s: any, i: number) => {
@@ -297,55 +413,21 @@ export function useLoadout() {
         })
       }
 
-      await lc.writeItemSetsToDisk([
+      await writeItemSet(
         {
-          uid: newUid,
-          title: getItemSetsTitle({
-            championId,
-            mode: meta.mode,
-            position: meta.position
-          }),
-          sortrank: 0,
-          type: 'global',
-          map: 'any',
-          mode: 'any',
-          blocks: itemGroups.map((g) => ({
-            type: g.title,
-            items: g.items.map((i) => ({
-              id: restoreRecipe(i).toString(),
-              count: 1
-            }))
-          })),
-          associatedChampions: [],
-          associatedMaps: [],
-          preferredItemSlots: []
-        }
-      ])
-
-      message.success(t('opgg.champion.writtenToDisk'))
-
-      if (lcs.chat.conversations.championSelect) {
-        lc.api.chat
-          .chatSend(
-            lcs.chat.conversations.championSelect.id,
-            t('opgg.champion.writeToDisk', {
-              name: getItemSetsChatName({
-                championId,
-                position: meta.position
-              })
-            }),
-            'celebration'
-          )
-          .catch((error) => {
-            log.warn(componentName, 'Failed to send item sets message', error)
-          })
-      }
+          sourceId: 'opgg',
+          sourceLabel: 'OP.GG',
+          championId,
+          version: champion.meta.version,
+          itemGroups
+        },
+        meta
+      )
     } catch (error) {
-      log.warn(componentName, 'write item sets failed', error)
-
+      log.warn(componentName, 'prepare OP.GG item sets failed', error)
       message.warning(
         t('opgg.champion.writeFileFailedMessage', {
-          error: (error as any).message
+          reason: (error as Error).message
         })
       )
     }
@@ -354,6 +436,7 @@ export function useLoadout() {
   return {
     setSummonerSpells,
     setRunes,
+    writeItemSet,
     writeItemSets
   }
 }

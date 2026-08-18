@@ -6,6 +6,7 @@ opgg:
     unpin: Unpin
     repositionToAlignLeagueClientUx: Align with League Client UX
   filters:
+    provider: Provider
     toOpgg: Go to OP.GG
     refresh: Refresh
     champions: Tier
@@ -72,6 +73,7 @@ opgg:
       pickRate: P/R
       counter: Counters
       banRate: B/R
+      matches: Matches
     cancel: Cancel
   view:
     replace: Provide
@@ -108,6 +110,35 @@ opgg:
     runesSet: '[$t(common:appName)] {{action}} rune build: {{name}}'
     sessionChampions:
       title: Session Champions
+  resg:
+    title: RESG ARAM Guide
+    version: Data version {{version}}
+    aramOnly: ARAM only · live single-champion query
+    importItems: Import RESG Items
+    loadFailed: 'RESG data is unavailable: {{reason}}'
+    linkedItems: Augment-linked Items
+    augmentCombos: Augment Combination Stats
+    augmentComboSizeLabel: Augment combination size
+    recommendedAugments: Single Augment Stats
+    singleItems: Single Item Stats
+    coreItemCombos: Core Item Combination Stats
+    itemComboSizeLabel: Core item combination size
+    linkedBuild: Linked build
+    showLinkedBuilds: Show linked builds
+    hideLinkedBuilds: Hide linked builds
+    winRateValue: Win {{rate}}%
+    pickRateValue: Pick {{rate}}%
+    wins_one: '{{wins}} win'
+    wins_other: '{{wins}} wins'
+    augmentCount_one: '{{count}} augment'
+    augmentCount_other: '{{count}} augments'
+    itemCount_one: '{{count}} item'
+    itemCount_other: '{{count}} items'
+    showAll: Show all
+    showLess: Show less
+    starterGroup: 'RESG Starting Items #{{index}}'
+    bootsGroup: RESG Boots
+    linkedItemGroup: 'RESG Core Build #{{index}}'
   champion:
     boots: Boots
     adorableRabi: Kawaii Bunny

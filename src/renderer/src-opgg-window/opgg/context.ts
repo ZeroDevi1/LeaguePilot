@@ -4,6 +4,7 @@ import { useStableComputed } from '@renderer-shared/composables/useStableCompute
 import { useInstance } from '@renderer-shared/shards'
 import { useAutoChampConfigStore } from '@renderer-shared/shards/auto-champ-config/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
+import { selectLatestResgVersion } from '@shared/data-adapter/resg'
 import {
   ModeType,
   OpggAramMayhemChampionAugmentsResponse,
@@ -13,6 +14,11 @@ import {
   RegionType,
   TierType
 } from '@shared/types/opgg'
+import type {
+  ResgChampionGuide,
+  ResgChampionIndexResponse,
+  ResgVersionItem
+} from '@shared/types/resg'
 import { QueueKeeper, isAbortError } from '@shared/utils/queue-keeper'
 import { watchDebounced } from '@vueuse/core'
 import { useTranslation } from 'i18next-vue'
@@ -32,8 +38,11 @@ const AUTO_CHAMP_CONFIG_GAME_MODE_MAP: Record<string, string> = {
 
 export const OpggContextKey: InjectionKey<OpggContext> = Symbol('OpggContext')
 
+export type GuideProvider = 'opgg' | 'resg'
+
 export type OpggContext = {
   currentTab: Ref<'champions' | 'champion'>
+  provider: Ref<GuideProvider>
 
   setTab: (tab: 'champions' | 'champion', championId?: number) => void
 
@@ -52,11 +61,17 @@ export type OpggContext = {
   champion: Ref<OpggChampionBuildResponse | null>
 
   kiwiAugments: Ref<OpggAramMayhemChampionAugmentsResponse | null>
+  resgVersions: Ref<ResgVersionItem[]>
+  resgVersion: Ref<string | null>
+  resgChampions: Ref<ResgChampionIndexResponse | null>
+  resgGuide: Ref<ResgChampionGuide | null>
+  resgError: Ref<string | null>
 
   isLoading: Ref<boolean>
 
   setFlashPosition: (flashPosition: 'auto' | 'd' | 'f') => void
 
+  changeProvider: (provider: GuideProvider) => Promise<void>
   changeMode: (mode: ModeType) => Promise<void>
   changePosition: (position: PositionType) => Promise<void>
   changeRegion: (region: RegionType) => Promise<void>
@@ -140,6 +155,7 @@ export function provideOpgg() {
   const { t } = useTranslation()
 
   const currentTab = ref<'champions' | 'champion'>('champions')
+  const provider = ref<GuideProvider>('opgg')
 
   const flashPosition = ref<'auto' | 'd' | 'f'>(ogs.savedPreferences.flashPosition)
 
@@ -160,46 +176,50 @@ export function provideOpgg() {
 
   // 目前 op.gg 榜单依然采用 aram 总榜，但额外加了 Kiwi 模式的 augments 榜单
   const kiwiAugments = shallowRef<OpggAramMayhemChampionAugmentsResponse | null>(null)
+  // RESG 仅提供大乱斗数据；其版本、列表和详情与 OP.GG 状态隔离。
+  const resgVersions = shallowRef<ResgVersionItem[]>([])
+  const resgVersion = ref<string | null>(null)
+  const resgChampions = shallowRef<ResgChampionIndexResponse | null>(null)
+  const resgGuide = shallowRef<ResgChampionGuide | null>(null)
+  const resgError = ref<string | null>(null)
 
-  const queueKeeper = new QueueKeeper([{ id: 'default' }])
+  const queueKeeper = new QueueKeeper([{ id: 'default' }, { id: 'resg' }])
 
   const isLoading = ref(false)
+  let updateGeneration = 0
 
   const ensureVersionFor = async (
     region0: RegionType,
     mode0: ModeType,
+    generation: number,
     opts: {
       reload: boolean
       preferredVersion?: string | null
     }
-  ): Promise<string | null> => {
+  ): Promise<{ version: string; versions: string[] } | null> => {
     const preferred = opts.preferredVersion ?? version.value
+    let nextVersions = versions.value
 
-    if (opts.reload || !version.value || versions.value.length === 0) {
+    if (opts.reload || !version.value || nextVersions.length === 0) {
       const {
         data: { data: versions0 }
       } = await queueKeeper.add(
         'default',
-        'opgg-load-versions',
+        `opgg-load-versions:${generation}`,
         ({ signal }) => og.api.getVersions(region0, mode0, { signal }),
         { tags: ['opgg-group'] }
       )
 
-      versions.value = versions0
+      nextVersions = versions0
     }
 
-    if (versions.value.length === 0) {
+    if (nextVersions.length === 0) {
       return null
     }
 
-    let nextVersion =
-      preferred && versions.value.includes(preferred) ? preferred : versions.value[0]
+    const nextVersion = preferred && nextVersions.includes(preferred) ? preferred : nextVersions[0]
 
-    if (!versions.value.includes(nextVersion)) {
-      nextVersion = versions.value[0]
-    }
-
-    return nextVersion
+    return { version: nextVersion, versions: nextVersions }
   }
 
   const update = async (opts: {
@@ -210,15 +230,16 @@ export function provideOpgg() {
     championId?: number
     position?: PositionType
     force?: boolean
-  }) => {
+  }): Promise<boolean> => {
+    const generation = ++updateGeneration
     queueKeeper.cancelAll()
-
     isLoading.value = true
 
     try {
-      const nextVersion = await ensureVersionFor(
+      const versionResult = await ensureVersionFor(
         opts.region ?? region.value,
         opts.mode ?? mode.value,
+        generation,
         {
           // version 和 mode 需要刷新 version
           // 但也没那么强制，但 mode 变化必须刷新 version
@@ -227,11 +248,14 @@ export function provideOpgg() {
         }
       )
 
-      if (!nextVersion) {
-        message.warning(() => t('opgg.view.noVersionFound'))
-        return
+      if (!versionResult) {
+        if (generation === updateGeneration && provider.value === 'opgg') {
+          message.warning(() => t('opgg.view.noVersionFound'))
+        }
+        return false
       }
 
+      const nextVersion = versionResult.version
       const targetMode = opts.mode ?? mode.value
       const targetRegion = opts.region ?? region.value
       const targetTier = opts.tier ?? tier.value
@@ -253,7 +277,7 @@ export function provideOpgg() {
       if (opts.force || opts.region || opts.mode || opts.version || opts.tier) {
         const { data: championsData } = await queueKeeper.add(
           'default',
-          'opgg-load-champions',
+          `opgg-load-champions:${generation}`,
           ({ signal }) =>
             og.api.getChampions(targetRegion, targetMode, {
               tier: targetMode === 'arena' ? undefined : targetTier,
@@ -271,7 +295,7 @@ export function provideOpgg() {
       if (targetChampionId) {
         const { data: championData } = await queueKeeper.add(
           'default',
-          'opgg-load-champion',
+          `opgg-load-champion:${generation}`,
           ({ signal }) =>
             og.api.getChampion(targetRegion, targetMode, targetChampionId, targetPosition, {
               tier: targetMode === 'arena' ? undefined : targetTier,
@@ -290,7 +314,7 @@ export function provideOpgg() {
       if (targetChampionId && targetMode === 'aram') {
         const { data: kiwiAugmentsData } = await queueKeeper.add(
           'default',
-          'opgg-load-kiwi-augments',
+          `opgg-load-kiwi-augments:${generation}`,
           ({ signal }) => og.api.getAramMayhemChampionAugments(targetChampionId, { signal }),
           { tags: ['opgg-group'] }
         )
@@ -298,7 +322,12 @@ export function provideOpgg() {
         updatedKiwiAugmentsData = kiwiAugmentsData
       }
 
+      if (generation !== updateGeneration || provider.value !== 'opgg') {
+        return false
+      }
+
       // commit
+      versions.value = versionResult.versions
       version.value = nextVersion
       region.value = targetRegion
       mode.value = targetMode
@@ -316,24 +345,139 @@ export function provideOpgg() {
 
       // 会在模式不匹配时主动清空
       kiwiAugments.value = updatedKiwiAugmentsData
+      return true
     } catch (error) {
-      if (isAbortError(error)) {
-        return
+      if (isAbortError(error) || generation !== updateGeneration || provider.value !== 'opgg') {
+        return false
       }
 
       const err = error as Error
       message.error(err.message || String(error))
+      return false
     } finally {
-      isLoading.value = false
+      if (generation === updateGeneration) {
+        isLoading.value = false
+      }
     }
   }
 
+  /** 按当前 RESG provider 状态加载版本、英雄列表和可选详情。 */
+  const updateResg = async (opts: {
+    version?: string
+    championId?: number
+    force?: boolean
+  }): Promise<boolean> => {
+    const generation = ++updateGeneration
+    queueKeeper.cancelAll()
+    isLoading.value = true
+    resgError.value = null
+
+    try {
+      let nextVersions = resgVersions.value
+      if (opts.force || nextVersions.length === 0) {
+        nextVersions = await queueKeeper.add(
+          'resg',
+          `resg-load-versions:${generation}`,
+          ({ signal }) => og.loadResgVersions({ signal, force: opts.force }),
+          { tags: ['resg-group'] }
+        )
+      }
+
+      const preferredVersion = opts.version ?? resgVersion.value
+      const latestVersion = selectLatestResgVersion(nextVersions)
+      const nextVersion =
+        preferredVersion && nextVersions.some((item) => item.version === preferredVersion)
+          ? preferredVersion
+          : latestVersion
+
+      if (!nextVersion) {
+        if (generation === updateGeneration && provider.value === 'resg') {
+          message.warning(() => t('opgg.view.noVersionFound'))
+        }
+        return false
+      }
+
+      const targetChampionId = opts.championId ?? championId.value
+      let updatedChampions = resgChampions.value
+      if (opts.force || opts.version !== undefined || !updatedChampions) {
+        updatedChampions = await queueKeeper.add(
+          'resg',
+          `resg-load-champions:${generation}`,
+          ({ signal }) =>
+            og.loadResgChampions(nextVersion, {
+              signal,
+              force: opts.force
+            }),
+          { tags: ['resg-group'] }
+        )
+      }
+
+      if (generation !== updateGeneration || provider.value !== 'resg') {
+        return false
+      }
+
+      // 版本和英雄索引是可独立使用的稳定状态；详情失败时也必须保留列表，让用户能改选英雄。
+      resgVersions.value = nextVersions
+      resgVersion.value = nextVersion
+      resgChampions.value = updatedChampions
+      resgGuide.value = null
+      championId.value = targetChampionId
+
+      if (!targetChampionId) {
+        return true
+      }
+
+      const updatedGuide = await queueKeeper.add(
+        'resg',
+        `resg-load-champion:${generation}`,
+        ({ signal }) =>
+          og.loadResgChampion(nextVersion, targetChampionId, {
+            signal,
+            force: opts.force
+          }),
+        { tags: ['resg-group'] }
+      )
+
+      if (generation !== updateGeneration || provider.value !== 'resg') {
+        return false
+      }
+
+      resgGuide.value = updatedGuide
+      return true
+    } catch (error) {
+      if (isAbortError(error) || generation !== updateGeneration || provider.value !== 'resg') {
+        return false
+      }
+
+      const err = error as Error
+      resgGuide.value = null
+      resgError.value = err.message || String(error)
+      message.warning(resgError.value)
+      return false
+    } finally {
+      if (generation === updateGeneration) {
+        isLoading.value = false
+      }
+    }
+  }
+
+  const changeProvider = async (provider0: GuideProvider) => {
+    if (provider.value === provider0) {
+      return
+    }
+
+    provider.value = provider0
+    await (provider0 === 'resg' ? updateResg({}) : update({}))
+  }
+
   const changeMode = async (mode0: ModeType) => {
-    await update({ mode: mode0 })
+    if (provider.value === 'opgg') {
+      await update({ mode: mode0 })
+    }
   }
 
   const changePosition = async (position0: PositionType) => {
-    if (mode.value !== 'ranked') {
+    if (provider.value !== 'opgg' || mode.value !== 'ranked') {
       return
     }
 
@@ -341,23 +485,33 @@ export function provideOpgg() {
   }
 
   const changeRegion = async (region0: RegionType) => {
-    await update({ region: region0 })
+    if (provider.value === 'opgg') {
+      await update({ region: region0 })
+    }
   }
 
   const changeTier = async (tier0: TierType) => {
-    await update({ tier: tier0 })
+    if (provider.value === 'opgg') {
+      await update({ tier: tier0 })
+    }
   }
 
   const changeVersion = async (version0: string) => {
-    await update({ version: version0 })
+    await (provider.value === 'resg'
+      ? updateResg({ version: version0 })
+      : update({ version: version0 }))
   }
 
   const changeChampion = async (championId0: number) => {
-    await update({ championId: championId0 })
+    await (provider.value === 'resg'
+      ? updateResg({ championId: championId0 })
+      : update({ championId: championId0 }))
   }
 
   const cancel = () => {
+    updateGeneration += 1
     queueKeeper.cancelAll()
+    isLoading.value = false
   }
 
   const setTab = (tab: 'champions' | 'champion', championId0?: number) => {
@@ -370,7 +524,7 @@ export function provideOpgg() {
   }
 
   const refresh = async () => {
-    await update({ force: true })
+    await (provider.value === 'resg' ? updateResg({ force: true }) : update({ force: true }))
   }
 
   onMounted(() => {
@@ -503,14 +657,30 @@ export function provideOpgg() {
         active.championId !== -3 /* cherry bravery */ &&
         !lcs.champSelect.disabledChampionIds.has(active.championId)
       ) {
+        // RESG provider 只覆盖大乱斗；其它模式保持当前列表，不回退到隐藏的 OP.GG 请求。
+        if (provider.value === 'resg') {
+          if (mode0 !== 'aram') {
+            return
+          }
+
+          currentTab.value = 'champion'
+          championId.value = active.championId
+          await updateResg({ championId: active.championId })
+          return
+        }
+
         currentTab.value = 'champion'
         championId.value = active.championId
 
-        await update({
+        const didUpdate = await update({
           championId: active.championId,
           mode: mode0,
           position: position0
         })
+
+        if (!didUpdate || provider.value !== 'opgg') {
+          return
+        }
 
         // 处理自动化
         const summonerSpells = champion.value?.data.summoner_spells
@@ -551,6 +721,7 @@ export function provideOpgg() {
 
   provide(OpggContextKey, {
     currentTab,
+    provider,
 
     setTab,
 
@@ -570,9 +741,15 @@ export function provideOpgg() {
     champion,
 
     kiwiAugments,
+    resgVersions,
+    resgVersion,
+    resgChampions,
+    resgGuide,
+    resgError,
 
     isLoading,
 
+    changeProvider,
     changeMode,
     changePosition,
     changeRegion,
