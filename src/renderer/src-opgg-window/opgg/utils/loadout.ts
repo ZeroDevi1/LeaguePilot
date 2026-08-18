@@ -28,6 +28,10 @@ export interface GuideItemSet {
   championId: number
   /** 数据版本；来源没有版本时可省略。 */
   version?: string
+  /** 限制该装备页显示的 Riot 英雄 ID；省略时不限制英雄。 */
+  associatedChampions?: number[]
+  /** 限制该装备页显示的 Riot 地图 ID；省略时不限制地图。 */
+  associatedMaps?: number[]
   /** 要写入客户端的装备分组；空分组不会产生有效装备页。 */
   itemGroups: GuideItemSetGroup[]
 }
@@ -302,8 +306,8 @@ export function useLoadout() {
               count: 1
             }))
           })),
-          associatedChampions: [],
-          associatedMaps: [],
+          associatedChampions: itemSet.associatedChampions ?? [],
+          associatedMaps: itemSet.associatedMaps ?? [],
           preferredItemSlots: []
         }
       ])

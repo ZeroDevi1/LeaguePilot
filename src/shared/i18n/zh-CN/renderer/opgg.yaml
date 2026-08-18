@@ -134,8 +134,10 @@ opgg:
     showAll: 展开全部
     showLess: 收起
     starterGroup: 'RESG 起始装备 #{{index}}'
-    bootsGroup: RESG 鞋子
+    bootsGroup: 'RESG 鞋子 #{{index}}'
     linkedItemGroup: 'RESG 核心出装 #{{index}}'
+    buildStats: '{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%'
+    buildStatsWithoutPickRate: '{{play}} 场 · 胜率 {{winRate}}%'
   champion:
     boots: 鞋子
     adorableRabi: 兔兔好可爱

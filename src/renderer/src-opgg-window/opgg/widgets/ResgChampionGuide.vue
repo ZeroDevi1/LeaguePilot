@@ -264,7 +264,7 @@ import AugmentDisplay from '@renderer-shared/components/widgets/AugmentDisplay.v
 import ItemDisplay from '@renderer-shared/components/widgets/ItemDisplay.vue'
 import SummonerSpellDisplay from '@renderer-shared/components/widgets/SummonerSpellDisplay.vue'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
-import type { ResgGuideAugmentCombo } from '@shared/types/resg'
+import type { ResgGuideAugmentCombo, ResgGuideBuild } from '@shared/types/resg'
 import { useTranslation } from 'i18next-vue'
 import { NAlert, NButton, NSelect, NTag } from 'naive-ui'
 import { computed, defineComponent, h, type PropType, ref, watch } from 'vue'
@@ -274,6 +274,7 @@ import { type GuideItemSetGroup, useLoadout } from '../utils/loadout'
 
 const DEFAULT_COMBO_LIMIT = 6
 const DEFAULT_STAT_LIMIT = 10
+const HOWLING_ABYSS_MAP_ID = 12
 
 const RateStats = defineComponent({
   name: 'ResgRateStats',
@@ -400,27 +401,43 @@ watch(itemComboSize, () => {
   showAllItemCombos.value = false
 })
 
+/** 把 RESG 方案的样本与胜率信息附加到客户端装备分组标题。 */
+function getItemGroupTitle(title: string, build: ResgGuideBuild): string {
+  const statsKey =
+    build.pickRate === null ? 'opgg.resg.buildStatsWithoutPickRate' : 'opgg.resg.buildStats'
+  const stats = t(statsKey, {
+    count: build.play,
+    play: build.play.toLocaleString(),
+    winRate: (build.winRate * 100).toFixed(2),
+    pickRate: build.pickRate === null ? undefined : (build.pickRate * 100).toFixed(2)
+  })
+
+  return `${title} · ${stats}`
+}
+
 const itemGroups = computed<GuideItemSetGroup[]>(() => {
   if (!resgGuide.value) {
     return []
   }
 
   const groups: GuideItemSetGroup[] = []
-  resgGuide.value.starterItems.slice(0, 3).forEach((build, index) => {
+  resgGuide.value.starterItems.slice(0, 3).forEach((build) => {
     groups.push({
-      title: t('opgg.resg.starterGroup', { index: index + 1 }),
+      title: getItemGroupTitle(t('opgg.resg.starterGroup', { index: build.rank }), build),
       items: build.ids
     })
   })
 
-  const boots = [...new Set(resgGuide.value.boots.flatMap((build) => build.ids))]
-  if (boots.length) {
-    groups.push({ title: t('opgg.resg.bootsGroup'), items: boots })
-  }
-
-  resgGuide.value.itemBuilds.slice(0, 4).forEach((build, index) => {
+  resgGuide.value.boots.slice(0, 4).forEach((build) => {
     groups.push({
-      title: t('opgg.resg.linkedItemGroup', { index: index + 1 }),
+      title: getItemGroupTitle(t('opgg.resg.bootsGroup', { index: build.rank }), build),
+      items: build.ids
+    })
+  })
+
+  resgGuide.value.itemBuilds.slice(0, 4).forEach((build) => {
+    groups.push({
+      title: getItemGroupTitle(t('opgg.resg.linkedItemGroup', { index: build.rank }), build),
       items: build.ids
     })
   })
@@ -468,6 +485,8 @@ function applyItemSet() {
       sourceLabel: 'RESG',
       championId: resgGuide.value.champion.id,
       version: resgGuide.value.version,
+      associatedChampions: [resgGuide.value.champion.id],
+      associatedMaps: [HOWLING_ABYSS_MAP_ID],
       itemGroups: itemGroups.value
     },
     {

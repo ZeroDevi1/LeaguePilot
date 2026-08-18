@@ -137,8 +137,12 @@ opgg:
     showAll: Show all
     showLess: Show less
     starterGroup: 'RESG Starting Items #{{index}}'
-    bootsGroup: RESG Boots
+    bootsGroup: 'RESG Boots #{{index}}'
     linkedItemGroup: 'RESG Core Build #{{index}}'
+    buildStats_one: '{{play}} game · {{winRate}}% win rate · {{pickRate}}% pick rate'
+    buildStats_other: '{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate'
+    buildStatsWithoutPickRate_one: '{{play}} game · {{winRate}}% win rate'
+    buildStatsWithoutPickRate_other: '{{play}} games · {{winRate}}% win rate'
   champion:
     boots: Boots
     adorableRabi: Kawaii Bunny
