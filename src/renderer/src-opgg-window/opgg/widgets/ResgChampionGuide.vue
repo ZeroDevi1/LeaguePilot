@@ -264,17 +264,17 @@ import AugmentDisplay from '@renderer-shared/components/widgets/AugmentDisplay.v
 import ItemDisplay from '@renderer-shared/components/widgets/ItemDisplay.vue'
 import SummonerSpellDisplay from '@renderer-shared/components/widgets/SummonerSpellDisplay.vue'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
-import type { ResgGuideAugmentCombo, ResgGuideBuild } from '@shared/types/resg'
+import type { ResgGuideAugmentCombo } from '@shared/types/resg'
 import { useTranslation } from 'i18next-vue'
 import { NAlert, NButton, NSelect, NTag } from 'naive-ui'
 import { computed, defineComponent, h, type PropType, ref, watch } from 'vue'
 
 import { useOpgg } from '../context'
-import { type GuideItemSetGroup, useLoadout } from '../utils/loadout'
+import { useLoadout } from '../utils/loadout'
+import { createResgItemSet } from '../utils/resg-item-set'
 
 const DEFAULT_COMBO_LIMIT = 6
 const DEFAULT_STAT_LIMIT = 10
-const HOWLING_ABYSS_MAP_ID = 12
 
 const RateStats = defineComponent({
   name: 'ResgRateStats',
@@ -401,51 +401,8 @@ watch(itemComboSize, () => {
   showAllItemCombos.value = false
 })
 
-/** 把 RESG 方案的样本与胜率信息附加到客户端装备分组标题。 */
-function getItemGroupTitle(title: string, build: ResgGuideBuild): string {
-  const statsKey =
-    build.pickRate === null ? 'opgg.resg.buildStatsWithoutPickRate' : 'opgg.resg.buildStats'
-  const stats = t(statsKey, {
-    count: build.play,
-    play: build.play.toLocaleString(),
-    winRate: (build.winRate * 100).toFixed(2),
-    pickRate: build.pickRate === null ? undefined : (build.pickRate * 100).toFixed(2)
-  })
-
-  return `${title} · ${stats}`
-}
-
-const itemGroups = computed<GuideItemSetGroup[]>(() => {
-  if (!resgGuide.value) {
-    return []
-  }
-
-  const groups: GuideItemSetGroup[] = []
-  resgGuide.value.starterItems.slice(0, 3).forEach((build) => {
-    groups.push({
-      title: getItemGroupTitle(t('opgg.resg.starterGroup', { index: build.rank }), build),
-      items: build.ids
-    })
-  })
-
-  resgGuide.value.boots.slice(0, 4).forEach((build) => {
-    groups.push({
-      title: getItemGroupTitle(t('opgg.resg.bootsGroup', { index: build.rank }), build),
-      items: build.ids
-    })
-  })
-
-  resgGuide.value.itemBuilds.slice(0, 4).forEach((build) => {
-    groups.push({
-      title: getItemGroupTitle(t('opgg.resg.linkedItemGroup', { index: build.rank }), build),
-      items: build.ids
-    })
-  })
-
-  return groups
-})
-
-const hasItemSet = computed(() => itemGroups.value.some((group) => group.items.length > 0))
+const itemSet = computed(() => (resgGuide.value ? createResgItemSet(resgGuide.value, t) : null))
+const hasItemSet = computed(() => itemSet.value?.itemGroups.some((group) => group.items.length > 0))
 
 /** 返回海克斯组合在当前英雄详情中的稳定展开键。 */
 function comboKey(combo: ResgGuideAugmentCombo): string {
@@ -475,27 +432,16 @@ function applySummonerSpells(spellIds: number[]) {
 
 /** 将当前 RESG 装备数据交给攻略窗的通用装备页写入链路。 */
 function applyItemSet() {
-  if (!resgGuide.value || !hasItemSet.value) {
+  if (!itemSet.value || !hasItemSet.value) {
     return
   }
 
-  writeItemSet(
-    {
-      sourceId: 'resg',
-      sourceLabel: 'RESG',
-      championId: resgGuide.value.champion.id,
-      version: resgGuide.value.version,
-      associatedChampions: [resgGuide.value.champion.id],
-      associatedMaps: [HOWLING_ABYSS_MAP_ID],
-      itemGroups: itemGroups.value
-    },
-    {
-      position: position.value,
-      mode: 'aram',
-      region: region.value,
-      tier: tier.value
-    }
-  )
+  writeItemSet(itemSet.value, {
+    position: position.value,
+    mode: 'aram',
+    region: region.value,
+    tier: tier.value
+  })
 }
 </script>
 

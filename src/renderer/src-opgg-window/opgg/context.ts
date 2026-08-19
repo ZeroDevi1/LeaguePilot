@@ -26,6 +26,7 @@ import { useMessage } from 'naive-ui'
 import { InjectionKey, Ref, inject, onMounted, provide, ref, shallowRef, watch } from 'vue'
 
 import { hasItemsSets, useLoadout } from './utils/loadout'
+import { createResgItemSet } from './utils/resg-item-set'
 
 // 对齐 auto champ config (暂定)
 const AUTO_CHAMP_CONFIG_GAME_MODE_MAP: Record<string, string> = {
@@ -150,7 +151,7 @@ export function provideOpgg() {
 
   const message = useMessage()
 
-  const { setSummonerSpells, setRunes, writeItemSets } = useLoadout()
+  const { setSummonerSpells, setRunes, writeItemSet, writeItemSets } = useLoadout()
 
   const { t } = useTranslation()
 
@@ -657,6 +658,10 @@ export function provideOpgg() {
         active.championId !== -3 /* cherry bravery */ &&
         !lcs.champSelect.disabledChampionIds.has(active.championId)
       ) {
+        if (isFakeKiwi) {
+          provider.value = ogs.frontendSettings.kiwiGuideProvider === 'resg' ? 'resg' : 'opgg'
+        }
+
         // RESG provider 只覆盖大乱斗；其它模式保持当前列表，不回退到隐藏的 OP.GG 请求。
         if (provider.value === 'resg') {
           if (mode0 !== 'aram') {
@@ -665,7 +670,23 @@ export function provideOpgg() {
 
           currentTab.value = 'champion'
           championId.value = active.championId
-          await updateResg({ championId: active.championId })
+          const didUpdate = await updateResg({ championId: active.championId })
+          if (!didUpdate || provider.value !== 'resg' || !resgGuide.value) {
+            return
+          }
+
+          const itemSet = createResgItemSet(resgGuide.value, t)
+          if (
+            ogs.frontendSettings.autoApplyItems &&
+            itemSet.itemGroups.some((group) => group.items.length > 0)
+          ) {
+            writeItemSet(itemSet, {
+              position: position0,
+              mode: 'aram',
+              region: region.value,
+              tier: tier.value
+            })
+          }
           return
         }
 

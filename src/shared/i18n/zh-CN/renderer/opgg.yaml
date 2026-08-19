@@ -98,9 +98,15 @@ opgg:
       autoApplySpells:
         label: 自动应用召唤师技能
         description: 若英雄数据匹配当前模式，自动应用最高出场率的召唤师技能和符文。仅当 OP.GG 窗口启用且窗口可见时生效
+      kiwiGuideProvider:
+        label: 海克斯大乱斗默认数据源
+        description: 进入海克斯大乱斗选人时，默认使用该数据源加载英雄攻略
+        options:
+          opgg: OP.GG
+          resg: RESG
       autoApplyItems:
         label: 自动应用装备方案
-        description: 若英雄数据匹配当前模式，自动应用装备方案。仅当 OP.GG 窗口启用且窗口可见时生效
+        description: 若英雄数据匹配当前模式，自动应用当前数据源的装备方案。仅当攻略窗口启用且窗口可见时生效
     success: '请求已发送: {{reason}}'
     summonerSpells: 召唤师技能
     runes: 符文配法
@@ -136,6 +142,7 @@ opgg:
     starterGroup: 'RESG 起始装备 #{{index}}'
     bootsGroup: 'RESG 鞋子 #{{index}}'
     linkedItemGroup: 'RESG 核心出装 #{{index}}'
+    fiveItemGroup: 'RESG 五件装 #{{index}}'
     buildStats: '{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%'
     buildStatsWithoutPickRate: '{{play}} 场 · 胜率 {{winRate}}%'
   champion:

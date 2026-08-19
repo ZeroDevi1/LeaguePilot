@@ -54,6 +54,22 @@
         <NSwitch v-model:value="os.frontendSettings.autoApplySpells" size="small" />
       </SettingsRow>
       <SettingsRow
+        :label="t('opgg.view.settings.kiwiGuideProvider.label')"
+        :label-description="t('opgg.view.settings.kiwiGuideProvider.description')"
+        align="start"
+      >
+        <NRadioGroup v-model:value="os.frontendSettings.kiwiGuideProvider" size="small">
+          <div class="flex flex-col gap-1">
+            <NRadio value="opgg">
+              {{ t('opgg.view.settings.kiwiGuideProvider.options.opgg') }}
+            </NRadio>
+            <NRadio value="resg">
+              {{ t('opgg.view.settings.kiwiGuideProvider.options.resg') }}
+            </NRadio>
+          </div>
+        </NRadioGroup>
+      </SettingsRow>
+      <SettingsRow
         :label="t('opgg.view.settings.autoApplyItems.label')"
         :label-description="t('opgg.view.settings.autoApplyItems.description')"
       >

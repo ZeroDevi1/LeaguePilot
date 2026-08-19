@@ -6,7 +6,8 @@ export const useOpggStore = defineStore('shard:opgg-renderer', () => {
   const frontendSettings = shallowReactive({
     autoApplyRunes: false,
     autoApplyItems: false,
-    autoApplySpells: false
+    autoApplySpells: false,
+    kiwiGuideProvider: 'opgg' as 'opgg' | 'resg'
   })
 
   const savedPreferences = shallowReactive<{

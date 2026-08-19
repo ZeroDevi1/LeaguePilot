@@ -98,9 +98,15 @@ opgg:
       autoApplySpells:
         label: Auto Apply Summoner Spells
         description: Automatically apply the highest pick rate summoner spells and runes if the champion data matches the current mode. Only effective when the OP.GG window is enabled and visible
+      kiwiGuideProvider:
+        label: 'Default ARAM: Mayhem Provider'
+        description: 'Use this provider by default when champion select starts for ARAM: Mayhem'
+        options:
+          opgg: OP.GG
+          resg: RESG
       autoApplyItems:
         label: Auto Apply Item Builds
-        description: Automatically apply item builds if the champion data matches the current mode. Only effective when the OP.GG window is enabled and visible
+        description: Automatically apply item builds from the current provider if the champion data matches the current mode. Only effective when the guide window is enabled and visible
     success: 'Request sent: {{reason}}'
     summonerSpells: Summoner Spells
     runes: Rune Builds
@@ -139,6 +145,7 @@ opgg:
     starterGroup: 'RESG Starting Items #{{index}}'
     bootsGroup: 'RESG Boots #{{index}}'
     linkedItemGroup: 'RESG Core Build #{{index}}'
+    fiveItemGroup: 'RESG Five-item Build #{{index}}'
     buildStats_one: '{{play}} game · {{winRate}}% win rate · {{pickRate}}% pick rate'
     buildStats_other: '{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate'
     buildStatsWithoutPickRate_one: '{{play}} game · {{winRate}}% win rate'

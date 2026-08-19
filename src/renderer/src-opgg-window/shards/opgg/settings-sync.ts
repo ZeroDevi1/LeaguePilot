@@ -19,4 +19,9 @@ export async function syncOpggSettings(context: OpggRendererContext) {
     store.frontendSettings,
     'autoApplySpells'
   )
+  await context.settingUtils.savedPropVue(
+    OPGG_RENDERER_NAMESPACE,
+    store.frontendSettings,
+    'kiwiGuideProvider'
+  )
 }
