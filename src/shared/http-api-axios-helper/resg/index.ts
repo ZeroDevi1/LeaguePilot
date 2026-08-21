@@ -31,7 +31,7 @@ export class ResgHttpApiAxiosHelper {
    * @returns Axios 响应，数据为 RESG 版本数组；网络和非 2xx 错误由 Axios 抛出。
    */
   getVersions(options: HttpApiRequestOptions = {}) {
-    return this._httpClient.get<ResgVersionItem[]>('/versions.json', {
+    return this._httpClient.get<ResgVersionItem[]>('/versions.js', {
       signal: options.signal
     })
   }
@@ -45,7 +45,7 @@ export class ResgHttpApiAxiosHelper {
    */
   getChampions(version: string, options: HttpApiRequestOptions = {}) {
     return this._httpClient.get<ResgChampionIndexResponse>(
-      `/versions/${encodeURIComponent(version)}/champions.json`,
+      `/versions/${encodeURIComponent(version)}/champions.js`,
       { signal: options.signal }
     )
   }
@@ -60,7 +60,7 @@ export class ResgHttpApiAxiosHelper {
    */
   getChampion(version: string, championId: number, options: HttpApiRequestOptions = {}) {
     return this._httpClient.get<ResgChampionResponse>(
-      `/versions/${encodeURIComponent(version)}/champions/${championId}.json`,
+      `/versions/${encodeURIComponent(version)}/champions/${championId}.js`,
       { signal: options.signal }
     )
   }

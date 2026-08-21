@@ -60,6 +60,13 @@ export interface ResgNamedResource {
   name: string
 }
 
+/**
+ * RESG 对装备或海克斯的引用。
+ *
+ * 当前静态模块常用纯数字 ID；旧响应则带 `name` 对象。
+ */
+export type ResgResourceRef = number | ResgNamedResource
+
 /** RESG 通用排名行。 */
 export interface ResgRankedBuild {
   /** 该方案在同类方案中的名次。 */
@@ -87,7 +94,7 @@ export interface ResgAugment {
 /** RESG 海克斯组合下的一套关联出装。 */
 export interface ResgAugmentItemBuild {
   /** 按购买顺序排列的装备。 */
-  items: ResgNamedResource[]
+  items: ResgResourceRef[]
   /** 该出装在对应海克斯组合下的样本数。 */
   total_matches: number
   /** 该出装在对应海克斯组合下的胜率，范围为 0 到 1。 */
@@ -102,8 +109,8 @@ export interface ResgAugmentCombo {
   rank: number
   /** 该组合包含的海克斯数量。 */
   size: number
-  /** 组合内的海克斯强化。 */
-  augments: ResgAugment[]
+  /** 组合内的海克斯强化；当前模块为纯 ID，旧响应为对象。 */
+  augments: Array<number | ResgAugment>
   /** 组合样本数。 */
   totalMatches: number
   /** 组合胜率，范围为 0 到 1。 */
@@ -121,7 +128,7 @@ export interface ResgItemCombo {
   /** 组合内的装备数量。 */
   size: number
   /** 按组合顺序排列的装备。 */
-  items: ResgNamedResource[]
+  items: ResgResourceRef[]
   /** 组合样本数。 */
   totalMatches: number
   /** 组合胜率，范围为 0 到 1。 */
@@ -134,8 +141,8 @@ export interface ResgItemCombo {
 export interface ResgItemStat {
   /** 单件装备在当前英雄数据中的名次。 */
   rank: number
-  /** Riot 装备资源。 */
-  item: ResgNamedResource
+  /** Riot 装备资源；当前模块可能只有 `id`。 */
+  item: ResgResourceRef | { id: number; name?: string }
   /** 使用该装备的样本数。 */
   totalMatches: number
   /** 使用该装备的胜场数。 */

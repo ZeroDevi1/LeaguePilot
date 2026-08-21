@@ -188,7 +188,9 @@
                 :size="30"
                 :augment-id="augmentId"
               />
-              <span class="ml-1 truncate text-xs">{{ combo.augmentNames.join(' · ') }}</span>
+              <span class="ml-1 truncate text-xs">{{
+                combo.augmentNames.filter(Boolean).join(' · ')
+              }}</span>
               <RateStats :play="combo.play" :win-rate="combo.winRate" />
             </div>
             <div
@@ -242,7 +244,9 @@
           <div class="flex gap-1">
             <ItemDisplay v-for="itemId in combo.ids" :key="itemId" :size="30" :item-id="itemId" />
           </div>
-          <span class="min-w-0 flex-1 truncate text-xs">{{ combo.names.join(' · ') }}</span>
+          <span class="min-w-0 flex-1 truncate text-xs">{{
+            combo.names.filter(Boolean).join(' · ')
+          }}</span>
           <RateStats :play="combo.play" :win-rate="combo.winRate" :pick-rate="combo.pickRate" />
         </div>
         <NButton

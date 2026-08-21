@@ -180,6 +180,87 @@ describe('RESG data adapter', () => {
     expect(guide && isResgGuideUsable(guide)).toBe(true)
   })
 
+  it('accepts numeric item and augment ids from current RESG modules', () => {
+    const guide = adaptResgChampionGuide(
+      {
+        champion: {
+          id: 1,
+          name: '黑暗之女',
+          title: '安妮',
+          alias: 'Annie',
+          roles: ['mage'],
+          totalMatches: 100,
+          tier: 'T2'
+        },
+        itemAnalysis: {
+          items: [
+            {
+              rank: 1,
+              item: { id: 3118 },
+              totalMatches: 50,
+              winMatches: 28,
+              winRate: 0.56,
+              pickRate: 0.5
+            }
+          ],
+          combos: {
+            '2': [
+              {
+                id: 1,
+                rank: 1,
+                size: 2,
+                items: [3118, 4645],
+                totalMatches: 35,
+                winRate: 0.55,
+                pickRate: 0.2
+              }
+            ]
+          }
+        },
+        recommendedAugments: [
+          {
+            id: 1030,
+            name: '尤里卡',
+            quality: 3,
+            totalMatches: 40,
+            winRate: 0.56,
+            pickRate: 0.3
+          }
+        ],
+        augmentCombos: {
+          '2': [
+            {
+              id: 31,
+              rank: 1,
+              size: 2,
+              augments: [1030, 1390],
+              totalMatches: 246,
+              winRate: 0.439,
+              builds: [
+                {
+                  items: [3118, 4645, 3089],
+                  total_matches: 87,
+                  win_rate: 0.3563
+                }
+              ]
+            }
+          ]
+        }
+      },
+      '16.16'
+    )
+
+    expect(guide?.items[0]).toMatchObject({ id: 3118, name: '', play: 50 })
+    expect(guide?.itemCombos[0].ids).toEqual([3118, 4645])
+    expect(guide?.itemBuilds[0].ids).toEqual([3118, 4645])
+    expect(guide?.augmentCombos[0]).toMatchObject({
+      size: 2,
+      augmentIds: [1030, 1390],
+      augmentNames: ['尤里卡', '']
+    })
+    expect(guide?.augmentCombos[0].builds[0].ids).toEqual([3118, 4645, 3089])
+  })
+
   it('preserves provider ranks and filters malformed nested combination data independently', () => {
     const guide = adaptResgChampionGuide(
       {

@@ -1,5 +1,4 @@
 import type {
-  ResgAugment,
   ResgAugmentCombo,
   ResgAugmentItemBuild,
   ResgChampionGuide,
@@ -90,7 +89,8 @@ export function adaptResgChampionGuide(
 
   const builds = isRecord(response.builds) ? response.builds : {}
   const itemAnalysis = isRecord(response.itemAnalysis) ? response.itemAnalysis : {}
-  const augmentCombos = toGuideAugmentCombos(response.augmentCombos)
+  const augmentNameById = toAugmentNameById(response.recommendedAugments)
+  const augmentCombos = toGuideAugmentCombos(response.augmentCombos, augmentNameById)
   const itemCombos = toGuideItemCombos(itemAnalysis.combos)
 
   return {
@@ -179,12 +179,15 @@ function toGuideAugments(augments: unknown): ResgGuideAugment[] {
 }
 
 /** 判断海克斯组合是否至少含一个有效强化。 */
-function hasUsableAugments(combo: ResgAugmentCombo): boolean {
-  return combo.augments.some((augment) => augment.id > 0)
+function hasUsableAugments(combo: ResgAugmentComboCandidate): boolean {
+  return (readResourceRefs(combo.augments)?.ids.length ?? 0) > 0
 }
 
 /** 按海克斯数量分组并转换全部合法组合。 */
-function toGuideAugmentCombos(groups: unknown): ResgGuideAugmentCombo[] {
+function toGuideAugmentCombos(
+  groups: unknown,
+  namesById: Map<number, string>
+): ResgGuideAugmentCombo[] {
   const combos = collectValidAugmentCombos(groups).filter(hasUsableAugments)
   const sizes = [...new Set(combos.map((combo) => combo.size))].toSorted(
     (left, right) => left - right
@@ -194,17 +197,21 @@ function toGuideAugmentCombos(groups: unknown): ResgGuideAugmentCombo[] {
     combos
       .filter((combo) => combo.size === size)
       .toSorted((left, right) => left.rank - right.rank)
-      .map(toGuideAugmentCombo)
+      .map((combo) => toGuideAugmentCombo(combo, namesById))
   )
 }
 
 /** 把海克斯组合及其关联出装转换成只依赖 Riot ID 的视图模型。 */
-function toGuideAugmentCombo(combo: ResgAugmentCombo): ResgGuideAugmentCombo {
+function toGuideAugmentCombo(
+  combo: ResgValidAugmentCombo,
+  namesById: Map<number, string>
+): ResgGuideAugmentCombo {
+  const augments = readResourceRefs(combo.augments) ?? { ids: [], names: [] }
   return {
     rank: combo.rank,
     size: combo.size,
-    augmentIds: combo.augments.map((augment) => augment.id),
-    augmentNames: combo.augments.map((augment) => augment.name),
+    augmentIds: augments.ids,
+    augmentNames: augments.ids.map((id, index) => namesById.get(id) || augments.names[index] || ''),
     play: combo.totalMatches,
     winRate: combo.winRate,
     builds: combo.builds
@@ -216,10 +223,10 @@ function toGuideAugmentCombo(combo: ResgAugmentCombo): ResgGuideAugmentCombo {
 
 /** 把海克斯组合关联出装转换成稳定视图模型。 */
 function toGuideLinkedBuild(build: ResgAugmentItemBuild): ResgGuideLinkedBuild {
-  const items = build.items.filter((item) => item.id > 0)
+  const items = readResourceRefs(build.items) ?? { ids: [], names: [] }
   return {
-    ids: items.map((item) => item.id),
-    names: items.map((item) => item.name),
+    ids: items.ids,
+    names: items.names,
     play: build.total_matches,
     winRate: build.win_rate
   }
@@ -229,15 +236,18 @@ function toGuideLinkedBuild(build: ResgAugmentItemBuild): ResgGuideLinkedBuild {
 function toGuideItemCombos(groups: unknown): ResgGuideItemCombo[] {
   return recordArrayValues(groups)
     .filter(isItemCombo)
-    .map((combo) => ({
-      rank: combo.rank,
-      size: combo.size,
-      ids: combo.items.map((item) => item.id).filter((id) => id > 0),
-      names: combo.items.map((item) => item.name),
-      play: combo.totalMatches,
-      winRate: combo.winRate,
-      pickRate: combo.pickRate
-    }))
+    .map((combo) => {
+      const items = readResourceRefs(combo.items) ?? { ids: [], names: [] }
+      return {
+        rank: combo.rank,
+        size: combo.size,
+        ids: items.ids,
+        names: items.names,
+        play: combo.totalMatches,
+        winRate: combo.winRate,
+        pickRate: combo.pickRate
+      }
+    })
     .filter((combo) => combo.ids.length > 0)
     .toSorted((left, right) => left.size - right.size || left.rank - right.rank)
 }
@@ -249,16 +259,28 @@ function toGuideItems(rows: unknown): ResgGuideItemStat[] {
   }
 
   return rows
-    .filter(isItemStat)
-    .map((row) => ({
-      rank: row.rank,
-      id: row.item.id,
-      name: row.item.name,
-      play: row.totalMatches,
-      win: row.winMatches,
-      winRate: row.winRate,
-      pickRate: row.pickRate
-    }))
+    .flatMap((row) => {
+      if (!isItemStat(row)) {
+        return []
+      }
+
+      const id = toPositiveId(row.item)
+      if (id === null) {
+        return []
+      }
+
+      return [
+        {
+          rank: row.rank,
+          id,
+          name: resourceName(row.item),
+          play: row.totalMatches,
+          win: row.winMatches,
+          winRate: row.winRate,
+          pickRate: row.pickRate
+        }
+      ]
+    })
     .toSorted((left, right) => left.rank - right.rank)
 }
 
@@ -296,19 +318,18 @@ function collectItemBuilds(
 
   for (const combo of collectValidAugmentCombos(augmentGroups)) {
     for (const build of combo.builds) {
-      const items = build.items.filter((item) => item.id > 0)
-      const ids = items.map((item) => item.id)
-      if (ids.length === 0) {
+      const items = readResourceRefs(build.items)
+      if (!items || items.ids.length === 0) {
         continue
       }
 
-      const key = ids.join('-')
+      const key = items.ids.join('-')
       const previous = uniqueBuilds.get(key)
       if (!previous || build.total_matches > previous.play) {
         uniqueBuilds.set(key, {
           rank: 0,
-          ids,
-          names: items.map((item) => item.name),
+          ids: items.ids,
+          names: items.names,
           play: build.total_matches,
           winRate: build.win_rate,
           pickRate: null
@@ -344,6 +365,65 @@ function isFiniteNumber(value: unknown): value is number {
 /** 判断值是否为 0 到 1 的比率。 */
 function isRate(value: unknown): value is number {
   return isFiniteNumber(value) && value >= 0 && value <= 1
+}
+
+/** 从纯 ID 或 `{ id }` 读取正数 Riot ID。 */
+function toPositiveId(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+    return value
+  }
+
+  if (
+    isRecord(value) &&
+    typeof value.id === 'number' &&
+    Number.isInteger(value.id) &&
+    value.id > 0
+  ) {
+    return value.id
+  }
+
+  return null
+}
+
+/** 读取资源显示名；纯 ID 引用没有名称。 */
+function resourceName(value: unknown): string {
+  return isRecord(value) && typeof value.name === 'string' ? value.name : ''
+}
+
+/** 把装备或海克斯引用列表整理成平行的 ID / 名称数组。 */
+function readResourceRefs(value: unknown): { ids: number[]; names: string[] } | null {
+  if (!Array.isArray(value) || value.length === 0) {
+    return null
+  }
+
+  const ids: number[] = []
+  const names: string[] = []
+  for (const item of value) {
+    const id = toPositiveId(item)
+    if (id === null) {
+      return null
+    }
+    ids.push(id)
+    names.push(resourceName(item))
+  }
+
+  return { ids, names }
+}
+
+/** 用独立海克斯推荐补全组合里缺失的名称。 */
+function toAugmentNameById(augments: unknown): Map<number, string> {
+  const names = new Map<number, string>()
+  if (!Array.isArray(augments)) {
+    return names
+  }
+
+  for (const augment of augments) {
+    if (isRecommendedAugment(augment)) {
+      names.set(augment.id, augment.name)
+    }
+  }
+
+  return names
 }
 
 /** 校验英雄列表行。 */
@@ -406,24 +486,13 @@ function isRankedBuild(value: unknown): value is ResgRankedBuild {
   )
 }
 
-/** 校验海克斯强化。 */
-function isAugment(value: unknown): value is ResgAugment {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    (value.id as number) > 0 &&
-    typeof value.name === 'string' &&
-    isFiniteNumber(value.quality)
-  )
-}
-
 /** 校验单件装备统计。 */
 function isItemStat(value: unknown): value is ResgItemStat {
   return (
     isRecord(value) &&
     Number.isInteger(value.rank) &&
     (value.rank as number) > 0 &&
-    isItemResource(value.item) &&
+    toPositiveId(value.item) !== null &&
     isFiniteNumber(value.totalMatches) &&
     value.totalMatches >= 0 &&
     isFiniteNumber(value.winMatches) &&
@@ -448,18 +517,11 @@ function isRecommendedAugment(value: unknown): value is ResgRecommendedAugment {
   )
 }
 
-/** 校验装备资源引用；装备 ID 必须为正数。 */
-function isItemResource(value: unknown): value is ResgNamedResource {
-  return isNamedResource(value) && value.id > 0
-}
-
 /** 校验海克斯组合关联出装。 */
 function isAugmentItemBuild(value: unknown): value is ResgAugmentItemBuild {
   return (
     isRecord(value) &&
-    Array.isArray(value.items) &&
-    value.items.length > 0 &&
-    value.items.every(isItemResource) &&
+    readResourceRefs(value.items) !== null &&
     isFiniteNumber(value.total_matches) &&
     value.total_matches >= 0 &&
     isRate(value.win_rate)
@@ -467,9 +529,13 @@ function isAugmentItemBuild(value: unknown): value is ResgAugmentItemBuild {
 }
 
 type ResgAugmentComboCandidate = Omit<ResgAugmentCombo, 'builds'> & { builds: unknown[] }
+type ResgValidAugmentCombo = Omit<ResgAugmentComboCandidate, 'builds'> & {
+  builds: ResgAugmentItemBuild[]
+}
 
 /** 校验海克斯组合本体；关联出装由子项校验独立过滤。 */
 function isAugmentComboCandidate(value: unknown): value is ResgAugmentComboCandidate {
+  const augments = isRecord(value) ? readResourceRefs(value.augments) : null
   return (
     isRecord(value) &&
     Number.isInteger(value.id) &&
@@ -478,9 +544,8 @@ function isAugmentComboCandidate(value: unknown): value is ResgAugmentComboCandi
     Number.isInteger(value.size) &&
     (value.size as number) >= 1 &&
     (value.size as number) <= 4 &&
-    Array.isArray(value.augments) &&
-    value.augments.length === value.size &&
-    value.augments.every(isAugment) &&
+    augments !== null &&
+    augments.ids.length === value.size &&
     isFiniteNumber(value.totalMatches) &&
     value.totalMatches >= 0 &&
     isRate(value.winRate) &&
@@ -489,7 +554,7 @@ function isAugmentComboCandidate(value: unknown): value is ResgAugmentComboCandi
 }
 
 /** 保留合法海克斯组合，并仅丢弃各组合内损坏的关联出装。 */
-function collectValidAugmentCombos(groups: unknown): ResgAugmentCombo[] {
+function collectValidAugmentCombos(groups: unknown): ResgValidAugmentCombo[] {
   return recordArrayValues(groups)
     .filter(isAugmentComboCandidate)
     .map((combo) => ({
@@ -500,6 +565,7 @@ function collectValidAugmentCombos(groups: unknown): ResgAugmentCombo[] {
 
 /** 校验独立装备组合。 */
 function isItemCombo(value: unknown): value is ResgItemCombo {
+  const items = isRecord(value) ? readResourceRefs(value.items) : null
   return (
     isRecord(value) &&
     Number.isInteger(value.id) &&
@@ -508,9 +574,8 @@ function isItemCombo(value: unknown): value is ResgItemCombo {
     Number.isInteger(value.size) &&
     (value.size as number) >= 1 &&
     (value.size as number) <= 5 &&
-    Array.isArray(value.items) &&
-    value.items.length === value.size &&
-    value.items.every(isItemResource) &&
+    items !== null &&
+    items.ids.length === value.size &&
     isFiniteNumber(value.totalMatches) &&
     value.totalMatches >= 0 &&
     isRate(value.winRate) &&
