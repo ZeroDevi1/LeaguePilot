@@ -1,4 +1,5 @@
 import { GtimgHeroListJs, GtimgKiwiAugments } from '@shared/data-sources/gtimg'
+import type { ArammetaHexCatalog } from '@shared/types/arammeta'
 import type { OpggAramBalanceItem } from '@shared/types/opgg'
 import { makeAutoObservable, observableRef } from 'mobx'
 
@@ -32,6 +33,20 @@ export class ExtraAssetsStateOpgg {
   constructor() {
     makeAutoObservable(this, {
       aramBalance: observableRef
+    })
+  }
+}
+
+export class ExtraAssetsStateArammeta {
+  hexCatalog: ArammetaHexCatalog | null = null
+
+  setHexCatalog(hexCatalog: ArammetaHexCatalog | null) {
+    this.hexCatalog = hexCatalog
+  }
+
+  constructor() {
+    makeAutoObservable(this, {
+      hexCatalog: observableRef
     })
   }
 }

@@ -35,7 +35,7 @@ toolkit:
         label: 锁定游戏设置
         description: 防止游戏内改动覆盖你已经调好的设置。需要调整设置时，可临时解除锁定
         details:
-          readonly: 锁定后，League Akari 会把英雄联盟的设置文件设为只读。游戏仍会读取现有设置，但新的改动不会写回。
+          readonly: 锁定后，LeaguePilot 会把英雄联盟的设置文件设为只读。游戏仍会读取现有设置，但新的改动不会写回。
           writable: 解除锁定会恢复写入。之后在游戏内调整画质、热键等设置时，会正常保存。
           scope: 只影响当前连接的客户端安装目录。
         setToReadonly: 已锁定游戏设置

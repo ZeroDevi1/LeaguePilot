@@ -13,7 +13,7 @@ settings:
       title: Basic
       locale:
         label: Language
-        description: Set the primary language for League Akari
+        description: Set the primary language for LeaguePilot
       mainWindowCloseAction:
         label: Main Window Close Action
         description: The action to be executed when the main window is closed

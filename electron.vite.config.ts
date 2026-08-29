@@ -11,7 +11,7 @@ const MAIN_EXTERNALS = [
   'electron',
   'typeorm',
   'better-sqlite3',
-  /^league-akari-native-win32(?:\/.*)?$/
+  /^league-pilot-native-win32(?:\/.*)?$/
 ]
 
 // 在解析 League Client 的标签时，需要考虑到这些自创的元素

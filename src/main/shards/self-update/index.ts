@@ -55,7 +55,7 @@ export class SelfUpdateMain implements IAkariShardInitDispose {
 
   private readonly _httpClient = axios.create({
     headers: {
-      'User-Agent': `LeagueAkari/${app.getVersion()} `
+      'User-Agent': `LeaguePilot/${app.getVersion()} `
     }
   })
 

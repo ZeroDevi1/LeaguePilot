@@ -88,13 +88,13 @@ client-installation-main:
   jumpList:
     launchTcls:
       title: Launch TCLS Client
-      description: Open League Akari and launch TCLS client
+      description: Open LeaguePilot and launch TCLS client
     launchRiot:
       title: Launch Riot Client
-      description: Open League Akari launch Riot client
+      description: Open LeaguePilot and launch Riot client
     launchWeGame:
       title: Launch WeGame
-      description: Open League Akari and launch WeGame
+      description: Open LeaguePilot and launch WeGame
 
 in-game-send-main:
   presets:

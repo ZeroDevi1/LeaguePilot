@@ -11,7 +11,7 @@ import {
 } from './process-utils-darwin'
 import { getCommandLinePowershell } from './process-utils-win32'
 
-export type { KeyEvent as NativeInputKeyEvent } from 'league-akari-native-win32/input'
+export type { KeyEvent as NativeInputKeyEvent } from 'league-pilot-native-win32/input'
 export { magic } from './magic'
 
 export interface NativeRuntimeInitializationResult {

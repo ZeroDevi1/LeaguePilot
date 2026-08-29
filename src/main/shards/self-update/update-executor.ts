@@ -443,7 +443,7 @@ export class SelfUpdateExecutor {
     }
   }
 
-  private _createNotification(title = 'League Akari', text: string) {
+  private _createNotification(title = 'LeaguePilot', text: string) {
     const notification = new Notification({
       title,
       body: text,

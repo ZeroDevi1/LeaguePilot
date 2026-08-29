@@ -80,11 +80,28 @@ function collectUnsupportedNativeWorkspaceModules() {
   return [...unsupportedModules].sort()
 }
 
+function resolveElectronPackageName() {
+  const requested = process.argv[2]
+  if (!requested || requested.startsWith('-')) {
+    return 'electron'
+  }
+
+  return requested
+}
+
 async function rebuildElectronNativeDependencies() {
   const { rebuild } = await import('@electron/rebuild')
-  const electronVersion = readJson(
-    path.join(repoRoot, 'node_modules', 'electron', 'package.json')
-  ).version
+  const electronPackageName = resolveElectronPackageName()
+  const electronPackageJsonPath = path.join(
+    repoRoot,
+    'node_modules',
+    ...electronPackageName.split('/'),
+    'package.json'
+  )
+  const electronVersion = readJson(electronPackageJsonPath).version
+  console.log(
+    `[clear-electron-rebuild-metadata] Rebuilding native modules for ${electronPackageName}@${electronVersion}`
+  )
   const ignoreModules = collectUnsupportedNativeWorkspaceModules()
 
   if (ignoreModules.length) {

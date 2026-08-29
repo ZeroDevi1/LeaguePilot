@@ -11,11 +11,11 @@ const release: AkariRelease = {
     {
       platform: 'win32',
       arch: 'x64',
-      fileName: 'LeagueAkari-1.6.0-win.7z',
+      fileName: 'LeaguePilot-1.6.0-win.7z',
       size: 1024,
       contentType: 'application/x-7z-compressed',
       sha256: null,
-      downloadUrl: 'https://example.com/LeagueAkari-1.6.0-win.7z'
+      downloadUrl: 'https://example.com/LeaguePilot-1.6.0-win.7z'
     }
   ]
 }
@@ -35,7 +35,7 @@ describe('self-update release info', () => {
       isSupportedWin32X64Artifact({
         ...artifact,
         contentType: 'application/octet-stream',
-        fileName: 'LeagueAkari-1.6.0-win.7Z'
+        fileName: 'LeaguePilot-1.6.0-win.7Z'
       })
     ).toBe(true)
   })
@@ -44,7 +44,7 @@ describe('self-update release info', () => {
     {
       ...release.artifacts[0],
       contentType: 'application/octet-stream',
-      fileName: 'LeagueAkari-1.6.0-win.zip'
+      fileName: 'LeaguePilot-1.6.0-win.zip'
     },
     {
       ...release.artifacts[0],

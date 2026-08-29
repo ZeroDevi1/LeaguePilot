@@ -12,7 +12,7 @@ export {
 } from './types'
 
 /**
- * League Akari 的 IPC 主进程实现
+ * LeaguePilot 的 IPC 主进程实现
  */
 @Shard(AkariIpcMain.id)
 export class AkariIpcMain implements IAkariShardInitDispose {

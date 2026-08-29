@@ -1,4 +1,4 @@
-# AGENTS.md — League Akari
+# AGENTS.md — LeaguePilot
 
 AI agent onboarding guide. Describes the project layout and architecture at a high level.
 
@@ -6,7 +6,7 @@ AI agent onboarding guide. Describes the project layout and architecture at a hi
 
 ## Overview
 
-**League Akari** is an Electron + Vue 3 desktop companion for League of Legends, built around the LCU (League Client Update) API. It provides automation, player analytics, and in-game utilities.
+**LeaguePilot** is an Electron + Vue 3 desktop companion for League of Legends, built around the LCU (League Client Update) API. It provides automation, player analytics, and in-game utilities.
 
 - **Main process**: Electron + Node.js, MobX, TypeORM + SQLite
 - **Renderer process**: Vue 3 + Pinia + Naive UI + Tailwind CSS
@@ -21,16 +21,16 @@ AI agent onboarding guide. Describes the project layout and architecture at a hi
 Before touching project-specific architecture, use the relevant local skill and mention it in the
 working update:
 
-- **Shard work**: use the `league-akari-shard-development` skill when creating,
+- **Shard work**: use the `league-pilot-shard-development` skill when creating,
   extending, refactoring, splitting, or reviewing any main or renderer shard.
-- **Renderer UI work**: use the `league-akari-ui-components` skill when implementing
+- **Renderer UI work**: use the `league-pilot-ui-components` skill when implementing
   or reviewing renderer UI components, especially i18n interpolation, pluralization, Tailwind usage
   in SFC styles, or native semantic elements inside the Naive UI renderer.
-- **SGP/LCU data-source work**: use the `league-akari-sgp-data-source` skill when
+- **SGP/LCU data-source work**: use the `league-pilot-sgp-data-source` skill when
   implementing or reviewing SGP API clients, LCU-vs-SGP source selection, League Servers remote
   config, Tencent cross-region behavior, token handling, or per-feature SGP interoperability.
-- **Dev-window debugging**: use the `league-akari-mcp-debug` skill when debugging
-  League Akari dev windows through the configured Playwright MCP connection.
+- **Dev-window debugging**: use the `league-pilot-mcp-debug` skill when debugging
+  LeaguePilot dev windows through the configured Playwright MCP connection.
 
 Do not rely on memory for these areas; read the skill first and follow its current rules.
 
@@ -237,7 +237,7 @@ Plain CSS / scoped CSS usage:
 
 ### Add a main-process feature
 
-Use the `league-akari-shard-development` skill first.
+Use the `league-pilot-shard-development` skill first.
 
 1. Create `src/main/shards/{name}/index.ts` with `@Shard('id')` class
 2. Inject needed shards as constructor params
@@ -246,19 +246,19 @@ Use the `league-akari-shard-development` skill first.
 
 ### Add a renderer-facing feature
 
-Use the `league-akari-shard-development` skill first.
+Use the `league-pilot-shard-development` skill first.
 
 - Mirror the main shard with a renderer shard in `src/renderer-shared/shards/`
 - Expose data via IPC and consume in a Vue composable or Pinia store
 
 ### Change renderer UI
 
-Use the `league-akari-ui-components` skill first. Prefer Naive UI primitives for interactive
+Use the `league-pilot-ui-components` skill first. Prefer Naive UI primitives for interactive
 controls, keep i18n sentence structure in YAML, and do not assume browser defaults are reset.
 
 ### Add a new window
 
-Use the `league-akari-shard-development` skill first because new windows touch renderer shards,
+Use the `league-pilot-shard-development` skill first because new windows touch renderer shards,
 window-manager contracts, and build entries.
 
 1. Add HTML file under `src/renderer/`

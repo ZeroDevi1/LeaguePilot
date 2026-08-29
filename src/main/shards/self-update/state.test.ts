@@ -18,11 +18,11 @@ describe('SelfUpdateState', () => {
       artifact: {
         platform: 'win32',
         arch: 'x64',
-        fileName: 'LeagueAkari-1.6.0-win.7z',
+        fileName: 'LeaguePilot-1.6.0-win.7z',
         size: 1024,
         contentType: 'application/x-7z-compressed',
         sha256: null,
-        downloadUrl: 'https://example.com/LeagueAkari-1.6.0-win.7z'
+        downloadUrl: 'https://example.com/LeaguePilot-1.6.0-win.7z'
       }
     }
 
@@ -54,11 +54,11 @@ describe('SelfUpdateState', () => {
       artifact: {
         platform: 'win32',
         arch: 'x64',
-        fileName: 'LeagueAkari-1.6.0-win.7z',
+        fileName: 'LeaguePilot-1.6.0-win.7z',
         size: 1024,
         contentType: 'application/x-7z-compressed',
         sha256: null,
-        downloadUrl: 'https://example.com/LeagueAkari-1.6.0-win.7z'
+        downloadUrl: 'https://example.com/LeaguePilot-1.6.0-win.7z'
       }
     }
 

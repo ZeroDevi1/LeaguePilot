@@ -7,7 +7,7 @@ import { ref, watch } from 'vue'
 import UpdateModal from './UpdateModal.vue'
 
 const releaseDescription = `
-## League Akari v1.6.0
+## LeaguePilot v1.6.0
 
 这次更新集中在自动选择、对局信息展示和应用稳定性。
 
@@ -35,9 +35,9 @@ const release: SelfUpdateReleaseInfo = {
   artifact: {
     platform: 'win32',
     arch: 'x64',
-    fileName: 'LeagueAkari-v1.6.0-win.7z',
+    fileName: 'LeaguePilot-v1.6.0-win.7z',
     size: 128 * 1024 * 1024,
-    downloadUrl: 'https://example.com/LeagueAkari-v1.6.0-win.7z',
+    downloadUrl: 'https://example.com/LeaguePilot-v1.6.0-win.7z',
     contentType: 'application/x-7z-compressed',
     sha256: null
   }
@@ -80,7 +80,7 @@ const contactChannels: AkariContactChannels = {
     {
       id: 'qq-group',
       platform: 'qq',
-      name: 'League Akari 反馈与问题交流总群',
+      name: 'LeaguePilot 反馈与问题交流总群',
       identifier: '123456789',
       url: 'https://example.com/qq-group',
       password: 'akari'
@@ -88,9 +88,9 @@ const contactChannels: AkariContactChannels = {
     {
       id: 'website',
       platform: 'website',
-      name: 'League Akari 项目主页与故障排查文档',
-      identifier: 'league-akari.example.com/support/troubleshooting',
-      url: 'https://example.com/league-akari',
+      name: 'LeaguePilot 项目主页与故障排查文档',
+      identifier: 'league-pilot.example.com/support/troubleshooting',
+      url: 'https://example.com/league-pilot',
       password: null
     }
   ]

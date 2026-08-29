@@ -7,17 +7,17 @@ describe('updater command arguments', () => {
     expect(
       createApplyUpdaterArguments({
         locale: 'zh-CN',
-        archivePath: String.raw`C:\Users\Administrator\AppData\Roaming\league-akari\NewUpdates\league-akari-win-x64.7z`,
+        archivePath: String.raw`C:\Users\Administrator\AppData\Roaming\league-pilot\NewUpdates\league-pilot-win-x64.7z`,
         targetPath: 'F:\\'
       })
     ).toEqual([
       '--lang',
       'zh-CN',
       '--executable',
-      'LeagueAkari.exe',
+      'LeaguePilot.exe',
       'apply',
       '--archive',
-      String.raw`C:\Users\Administrator\AppData\Roaming\league-akari\NewUpdates\league-akari-win-x64.7z`,
+      String.raw`C:\Users\Administrator\AppData\Roaming\league-pilot\NewUpdates\league-pilot-win-x64.7z`,
       '--target',
       'F:\\',
       '--delete-archive',
@@ -28,13 +28,13 @@ describe('updater command arguments', () => {
   test('passes uninstall paths containing spaces without command-shell quotes', () => {
     const args = createUninstallUpdaterArguments({
       locale: 'en',
-      appIds: ['league-akari', 'league-akari-dev'],
-      appPath: String.raw`C:\League Akari`,
-      dataPath: String.raw`C:\Users\Akari User\AppData\Roaming\league-akari`
+      appIds: ['league-pilot', 'league-pilot-dev'],
+      appPath: String.raw`C:\LeaguePilot`,
+      dataPath: String.raw`C:\Users\Pilot User\AppData\Roaming\league-pilot`
     })
 
-    expect(args).toContain(String.raw`C:\League Akari`)
-    expect(args).toContain(String.raw`C:\Users\Akari User\AppData\Roaming\league-akari`)
+    expect(args).toContain(String.raw`C:\LeaguePilot`)
+    expect(args).toContain(String.raw`C:\Users\Pilot User\AppData\Roaming\league-pilot`)
     expect(args.every((arg) => !arg.includes('"'))).toBe(true)
   })
 })

@@ -18,7 +18,7 @@ const createGochiusaGreetingLog = (version: string) => {
   )
 
   return {
-    format: `League Akari v${version}, ${easterEggFormat}%c?`,
+    format: `LeaguePilot v${version}, ${easterEggFormat}%c?`,
     styles: [...easterEggStyles, '']
   }
 }

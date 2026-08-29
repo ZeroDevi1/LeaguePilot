@@ -1,4 +1,4 @@
-export type Win32Addons = typeof import('league-akari-native-win32')
+export type Win32Addons = typeof import('league-pilot-native-win32')
 
 export interface Win32AddonsInitializationResult {
   addons: Win32Addons
@@ -9,7 +9,7 @@ export interface Win32AddonsInitializationResult {
 type RegisterExitListener = (listener: () => void) => void
 
 function loadWin32AddonsPackage(): Win32Addons {
-  return require('league-akari-native-win32') as Win32Addons
+  return require('league-pilot-native-win32') as Win32Addons
 }
 
 function registerProcessExitListener(listener: () => void) {

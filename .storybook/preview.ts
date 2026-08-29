@@ -49,7 +49,7 @@ setup((app) => {
 const preview: Preview = {
   globalTypes: {
     themeId: {
-      description: 'League Akari theme',
+      description: 'LeaguePilot theme',
       toolbar: {
         title: 'Theme',
         icon: 'paintbrush',

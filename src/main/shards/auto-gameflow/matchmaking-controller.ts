@@ -176,7 +176,7 @@ export class AutoGameflowMatchmakingController {
         leagueClient.api.chat
           .chatSend(
             leagueClient.data.chat.conversations.customGame.id,
-            `[League Akari] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled')}`,
+            `[LeaguePilot] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled')}`,
             'celebration'
           )
           .catch(() => {})
@@ -185,7 +185,7 @@ export class AutoGameflowMatchmakingController {
         leagueClient.api.chat
           .chatSend(
             leagueClient.data.chat.conversations.customGame.id,
-            `[League Akari] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-wait-for-invitees')}`,
+            `[LeaguePilot] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-wait-for-invitees')}`,
             'celebration'
           )
           .catch(() => {})
@@ -194,7 +194,7 @@ export class AutoGameflowMatchmakingController {
         leagueClient.api.chat
           .chatSend(
             leagueClient.data.chat.conversations.customGame.id,
-            `[League Akari] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-not-leader')}`,
+            `[LeaguePilot] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-not-leader')}`,
             'celebration'
           )
           .catch(() => {})
@@ -203,7 +203,7 @@ export class AutoGameflowMatchmakingController {
         leagueClient.api.chat
           .chatSend(
             leagueClient.data.chat.conversations.customGame.id,
-            `[League Akari] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-wait-for-penalty')}`,
+            `[LeaguePilot] ${i18next.t('auto-gameflow-main.auto-matchmaking-canceled-wait-for-penalty')}`,
             'celebration'
           )
           .catch(() => {})
@@ -214,7 +214,7 @@ export class AutoGameflowMatchmakingController {
       leagueClient.api.chat
         .chatSend(
           leagueClient.data.chat.conversations.customGame.id,
-          `[League Akari] ${i18next.t('auto-gameflow-main.auto-matchmaking-in', { seconds: Math.abs(time).toFixed() })}`,
+          `[LeaguePilot] ${i18next.t('auto-gameflow-main.auto-matchmaking-in', { seconds: Math.abs(time).toFixed() })}`,
           'celebration'
         )
         .catch(() => {})

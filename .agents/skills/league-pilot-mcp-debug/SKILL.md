@@ -1,31 +1,31 @@
 ---
-name: league-akari-mcp-debug
-description: Use the configured Playwright MCP CDP connection to debug League Akari dev windows directly, and troubleshoot only when the MCP target is unavailable.
+name: league-pilot-mcp-debug
+description: Use the configured Playwright MCP CDP connection to debug LeaguePilot dev windows directly, and troubleshoot only when the MCP target is unavailable.
 ---
 
-# League Akari MCP Debugging
+# LeaguePilot MCP Debugging
 
-Use this skill when inspecting or debugging League Akari renderer windows through the Playwright MCP/CDP connection.
+Use this skill when inspecting or debugging LeaguePilot renderer windows through the Playwright MCP/CDP connection.
 
 ## Core Rule
 
-Start from the configured MCP/CDP target. Do not manually discover the debug port first unless MCP fails to show League Akari targets.
+Start from the configured MCP/CDP target. Do not manually discover the debug port first unless MCP fails to show LeaguePilot targets.
 
 Expected MCP behavior in this project:
 
 - The active MCP host should configure Playwright MCP with `--cdp-endpoint=http://127.0.0.1:8944`.
 - The MCP command may also pass `--init-page=./scripts/playwright-mcp-init-page.cjs`; today that script only neutralizes forced media color scheme and does not inject extra debug globals.
-- League Akari dev startup sets Electron's `remote-debugging-port` to `8944`.
-- If the app is already running in dev mode, MCP should expose League Akari webContents as browser tabs.
+- LeaguePilot dev startup sets Electron's `remote-debugging-port` to `8944`.
+- If the app is already running in dev mode, MCP should expose LeaguePilot webContents as browser tabs.
 
 ## Normal Workflow
 
-1. Connect to the configured MCP/CDP target and select a League Akari renderer tab.
+1. Connect to the configured MCP/CDP target and select a LeaguePilot renderer tab.
 2. Identify the selected renderer with `window.akariWindowType`.
 3. Use the project-specific globals, renderer shards, `akari://` protocol, and debug UI below.
-4. If no League Akari target appears, use the troubleshooting section.
+4. If no LeaguePilot target appears, use the troubleshooting section.
 
-Do not restate generic MCP browser usage in this skill. The MCP server already exposes those tools; this skill exists to describe League Akari's own debug surface after the connection works.
+Do not restate generic MCP browser usage in this skill. The MCP server already exposes those tools; this skill exists to describe LeaguePilot's own debug surface after the connection works.
 
 ## Renderer Console Entry Points
 
@@ -49,7 +49,7 @@ The renderer console is not a Node.js console. Use exposed preload APIs and rend
 
 ## In-Page Debug Globals
 
-League Akari exposes several project-specific globals in renderer windows:
+LeaguePilot exposes several project-specific globals in renderer windows:
 
 - `window.akariWindowType`: current window type, such as `main-window`, `aux-window`, `opgg-window`, `ongoing-game-window`, or `cd-timer-window`.
 - `window.akariManager`: renderer shard manager. Use `window.akariManager.getInstance('<shard-id>')` to access instantiated renderer shards in the selected window.
@@ -181,7 +181,7 @@ stop()
 
 ## Window And DevTools Controls
 
-Every renderer window registers `window-manager-renderer`. It can show, hide, move, resize, pin, or open DevTools for League Akari windows through IPC.
+Every renderer window registers `window-manager-renderer`. It can show, hide, move, resize, pin, or open DevTools for LeaguePilot windows through IPC.
 
 Examples:
 
@@ -205,7 +205,7 @@ These commands mutate window state. Use them intentionally and restore settings 
 
 ## Cross-Window Evaluation
 
-If MCP is attached to one renderer but a snippet must run in another League Akari target, use the internal `akari://renderer-link/evaluate` protocol. This calls main-process `AppCommonMain.evaluate(...)`.
+If MCP is attached to one renderer but a snippet must run in another LeaguePilot target, use the internal `akari://renderer-link/evaluate` protocol. This calls main-process `AppCommonMain.evaluate(...)`.
 
 Targets:
 
@@ -249,7 +249,7 @@ Use the UI when the user needs a reproducible manual path; use console/evaluate 
 
 ## Multiple Windows
 
-League Akari has multiple Electron renderer windows. MCP can show several debug targets at once.
+LeaguePilot has multiple Electron renderer windows. MCP can show several debug targets at once.
 
 Common windows include:
 
@@ -259,14 +259,14 @@ Common windows include:
 - Ongoing game window.
 - Cooldown timer window.
 
-Pick the target by URL, title, or visible page contents. If multiple tabs have the title `League Akari`, inspect the URL before acting.
+Pick the target by URL, title, or visible page contents. If multiple tabs have the title `LeaguePilot`, inspect the URL before acting.
 
 ## Requirements
 
 MCP debugging works only when all of these are true:
 
-- League Akari is running.
-- League Akari is running in dev mode.
+- LeaguePilot is running.
+- LeaguePilot is running in dev mode.
 - The Electron app was started with the remote debugging port enabled.
 - The active MCP host has the Playwright MCP server configured and enabled.
 
@@ -288,13 +288,13 @@ After configuration, the MCP host may need to reload or restart before the Playw
 
 ## Troubleshooting Only After Direct MCP Fails
 
-If MCP does not show League Akari renderer targets, check these in order:
+If MCP does not show LeaguePilot renderer targets, check these in order:
 
-1. Confirm the League Akari app is running in dev mode.
+1. Confirm the LeaguePilot app is running in dev mode.
 2. Confirm the active MCP host config starts Playwright MCP with `--cdp-endpoint=http://127.0.0.1:8944`.
 3. Check the source of truth for the dev debug port in `src/main/bootstrap/index.ts`, inside `bootstrap()`. In dev mode, it appends Electron's `remote-debugging-port` switch.
 4. If necessary, query `http://127.0.0.1:8944/json/version` or `http://127.0.0.1:8944/json/list` to verify the CDP endpoint. This is a fallback diagnostic step, not the normal workflow.
-5. If the port does not respond, start or restart League Akari in dev mode.
+5. If the port does not respond, start or restart LeaguePilot in dev mode.
 6. If the port differs from `8944`, update the MCP `--cdp-endpoint` to match the app's configured debug port.
 
 ## Interpretation Notes
@@ -303,8 +303,8 @@ Renderer console errors can be normal depending on local League Client, SGP, or 
 
 Separate MCP connectivity problems from application runtime problems:
 
-- MCP connectivity problem: no League Akari tabs, cannot connect to CDP, or MCP tools unavailable.
-- Application runtime problem: League Akari tab is visible, but UI, console, or network shows app-specific errors.
+- MCP connectivity problem: no LeaguePilot tabs, cannot connect to CDP, or MCP tools unavailable.
+- Application runtime problem: LeaguePilot tab is visible, but UI, console, or network shows app-specific errors.
 
 When using console/evaluate:
 

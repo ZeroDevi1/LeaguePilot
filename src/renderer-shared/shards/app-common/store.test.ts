@@ -5,7 +5,7 @@ import { useAppCommonStore } from './store'
 
 vi.mock('i18next-vue', () => ({
   useTranslation: () => ({
-    t: (key: string) => (key === 'appName' ? 'League Akari' : key)
+    t: (key: string) => (key === 'appName' ? 'LeaguePilot' : key)
   })
 }))
 
@@ -19,6 +19,6 @@ describe('app common title', () => {
 
     store.isElevated = true
 
-    expect(store.appTitle).toBe('League Akari')
+    expect(store.appTitle).toBe('LeaguePilot')
   })
 })

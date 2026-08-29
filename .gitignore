@@ -19,6 +19,8 @@ native/*/*.tgz
 !native/*/dist/**/*.js
 !native/*/dist/**/*.d.ts
 native/*/dist/*.tsbuildinfo
+.env.overwolf.local
+dist-overwolf
 rabi-*
 todolist.md
 todolist.txt

@@ -65,7 +65,7 @@ jobs:
             os: macos-15
             build_command: yarn build:mac
             artifact_name: macos
-            release_asset_prefix: league-akari-mac-arm64
+            release_asset_prefix: league-pilot-mac-arm64
             cache_path: |
               ~/Library/Caches/electron
               ~/Library/Caches/electron-builder
@@ -76,7 +76,7 @@ jobs:
             os: windows-2022
             build_command: yarn build:win
             artifact_name: windows
-            release_asset_prefix: league-akari-win-x64
+            release_asset_prefix: league-pilot-win-x64
             cache_path: |
               ~\AppData\Local\electron\Cache
               ~\AppData\Local\electron-builder\Cache
@@ -264,7 +264,7 @@ jobs:
             short_sha="${GITHUB_SHA::7}"
             {
               echo "tag=${CI_RELEASE_TAG}"
-              echo "name=League Akari Dev Prerelease #${GITHUB_RUN_NUMBER} (${short_sha})"
+              echo "name=LeaguePilot Dev Prerelease #${GITHUB_RUN_NUMBER} (${short_sha})"
               echo "prerelease=true"
               echo "make_latest=false"
               echo "generate_notes=false"
@@ -272,7 +272,7 @@ jobs:
           else
             {
               echo "tag=${GITHUB_REF_NAME}"
-              echo "name=League Akari ${GITHUB_REF_NAME}"
+              echo "name=LeaguePilot ${GITHUB_REF_NAME}"
               echo "prerelease=false"
               echo "make_latest=true"
               echo "generate_notes=true"

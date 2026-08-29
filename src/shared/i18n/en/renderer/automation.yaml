@@ -21,7 +21,7 @@ automation:
     autoAcceptEnabled:
       label: Auto-Accept Enabled
       description: Automatically accepts the match when players are found.
-      footer: Some servers or ranked tiers may already enforce auto-accept by server policy. This is unrelated to League Akari.
+      footer: Some servers or ranked tiers may already enforce auto-accept by server policy. This is unrelated to LeaguePilot.
     autoAcceptDelaySeconds:
       label: Auto-Accept Delay (s)
       description: Delay in seconds before accepting the match after it becomes available.

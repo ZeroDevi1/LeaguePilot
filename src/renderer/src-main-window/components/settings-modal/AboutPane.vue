@@ -7,11 +7,11 @@
             <img
               class="size-40 drop-shadow-sm"
               src="@renderer-shared/assets/logo/logo-hollow.svg"
-              alt="Logo of League Akari"
+              alt="Logo of LeaguePilot"
             />
           </div>
           <div class="mt-3 max-w-xl text-[13px] leading-6 text-black/60 dark:text-white/60">
-            <LeagueAkariSpan bold @click="handleClickEasterEgg" />{{
+            <LeaguePilotSpan bold @click="handleClickEasterEgg" />{{
               t('settings.about.descriptionBefore', { version: as.version })
             }}
             <a
@@ -65,7 +65,7 @@
           <NButton
             text
             tag="a"
-            :href="LEAGUE_AKARI_GITHUB"
+            :href="LEAGUE_PILOT_GITHUB"
             target="_blank"
             rel="noreferrer"
             size="small"
@@ -85,9 +85,9 @@
 </template>
 
 <script setup lang="tsx">
-import LeagueAkariSpan from '@renderer-shared/components/LeagueAkariSpan.vue'
+import LeaguePilotSpan from '@renderer-shared/components/LeaguePilotSpan.vue'
 import { useAppCommonStore } from '@renderer-shared/shards/app-common/store'
-import { LEAGUE_AKARI_GITHUB } from '@shared/constants/common'
+import { LEAGUE_PILOT_GITHUB } from '@shared/constants/common'
 import { Github as GithubIcon, Star as StarIcon } from '@vicons/fa'
 import axios from 'axios'
 import { useTranslation } from 'i18next-vue'
@@ -112,8 +112,8 @@ const githubStars = ref<number | null>(null)
 const isFetchingGitHubStats = ref(false)
 let githubStatsController: AbortController | null = null
 
-const GITHUB_REPO_API = 'https://api.github.com/repos/LeagueAkari/LeagueAkari'
-const GITHUB_STARS_CACHE_KEY = 'league-akari:github-stars'
+const GITHUB_REPO_API = 'https://api.github.com/repos/ZeroDevi1/LeaguePilot'
+const GITHUB_STARS_CACHE_KEY = 'league-pilot:github-stars'
 
 interface GitHubRepoStatsResponse {
   stargazers_count?: unknown
@@ -165,7 +165,7 @@ const githubStarsText = computed(() => {
 })
 
 const handleClickEasterEgg = () => {
-  message.create(() => <LeagueAkariSpan bold />, {
+  message.create(() => <LeaguePilotSpan bold />, {
     type: 'success',
     keepAliveOnHover: true
   })

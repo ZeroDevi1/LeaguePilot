@@ -1,4 +1,5 @@
 import { IAkariShardInitDispose, Shard } from '@shared/akari-shard'
+import { ArammetaApi } from '@shared/data-sources/arammeta'
 import { GtimgApi } from '@shared/data-sources/gtimg'
 import { OpggHttpApiAxiosHelper } from '@shared/http-api-axios-helper/opgg'
 import axios from 'axios'
@@ -8,13 +9,14 @@ import { AkariLogger, LoggerFactoryMain } from '../logger-factory'
 import { MobxUtilsMain } from '../mobx-utils'
 import { ExtraAssetsRefreshController } from './asset-refresh-controller'
 import {
+  ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL,
   EXTRA_ASSETS_MAIN_NAMESPACE,
   type ExtraAssetsMainContext,
   GTIMG_HERO_LIST_UPDATE_INTERVAL,
   GTIMG_KIWI_AUGMENTS_UPDATE_INTERVAL,
   OPGG_ARAM_BALANCE_UPDATE_INTERVAL
 } from './context'
-import { ExtraAssetsStateGtimg, ExtraAssetsStateOpgg } from './state'
+import { ExtraAssetsStateArammeta, ExtraAssetsStateGtimg, ExtraAssetsStateOpgg } from './state'
 
 /**
  * 一些额外资源的拉取, 通常不属于 Akari 的一部分, 不影响核心逻辑, 可有可无
@@ -26,6 +28,7 @@ export class ExtraAssetsMain implements IAkariShardInitDispose {
   static GTIMG_HERO_LIST_UPDATE_INTERVAL = GTIMG_HERO_LIST_UPDATE_INTERVAL // 3 hour
   static GTIMG_KIWI_AUGMENTS_UPDATE_INTERVAL = GTIMG_KIWI_AUGMENTS_UPDATE_INTERVAL // 3 hour
   static OPGG_ARAM_BALANCE_UPDATE_INTERVAL = OPGG_ARAM_BALANCE_UPDATE_INTERVAL // 30 minutes
+  static ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL = ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL // 3 hour
 
   private readonly _logger: AkariLogger
   private readonly _context: ExtraAssetsMainContext
@@ -33,10 +36,17 @@ export class ExtraAssetsMain implements IAkariShardInitDispose {
 
   public readonly gtimg = new ExtraAssetsStateGtimg()
   public readonly opgg = new ExtraAssetsStateOpgg()
+  public readonly arammeta = new ExtraAssetsStateArammeta()
 
   private readonly _gtimgApi = new GtimgApi()
+
+  get gtimgApi() {
+    return this._gtimgApi
+  }
+
   private readonly _opggHttpClient = axios.create()
   private readonly _opggApi = new OpggHttpApiAxiosHelper(this._opggHttpClient)
+  private readonly _arammetaApi = new ArammetaApi()
 
   constructor(
     private readonly _appCommon: AppCommonMain,
@@ -51,9 +61,11 @@ export class ExtraAssetsMain implements IAkariShardInitDispose {
       mobxUtils: this._mobxUtils,
       gtimg: this.gtimg,
       opgg: this.opgg,
+      arammeta: this.arammeta,
       gtimgApi: this._gtimgApi,
       opggApi: this._opggApi,
-      opggHttpClient: this._opggHttpClient
+      opggHttpClient: this._opggHttpClient,
+      arammetaApi: this._arammetaApi
     }
     this._refreshController = new ExtraAssetsRefreshController(this._context)
   }
@@ -61,6 +73,7 @@ export class ExtraAssetsMain implements IAkariShardInitDispose {
   async onInit() {
     this._mobxUtils.propSync(ExtraAssetsMain.id, 'gtimg', this.gtimg, ['heroList', 'kiwiAugments'])
     this._mobxUtils.propSync(ExtraAssetsMain.id, 'opgg', this.opgg, ['aramBalance'])
+    this._mobxUtils.propSync(ExtraAssetsMain.id, 'arammeta', this.arammeta, ['hexCatalog'])
 
     this._refreshController.start()
   }

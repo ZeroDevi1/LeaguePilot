@@ -1,4 +1,4 @@
-import LeagueAkariSpan from '@renderer-shared/components/LeagueAkariSpan.vue'
+import LeaguePilotSpan from '@renderer-shared/components/LeaguePilotSpan.vue'
 import { useKeyboardCombo } from '@renderer-shared/composables/useKeyboardCombo'
 import { useMessage } from 'naive-ui'
 
@@ -13,7 +13,7 @@ export function watchSpecialKeyboardCombo() {
       if (simpleNotificationsStore.showDeclarationModal) {
         simpleNotificationsStore.showDeclarationModal = false
       } else {
-        message.success(() => <LeagueAkariSpan bold />)
+        message.success(() => <LeaguePilotSpan bold />)
       }
     },
     requireSameEl: true,

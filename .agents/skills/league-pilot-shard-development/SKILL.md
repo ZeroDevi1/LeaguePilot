@@ -1,11 +1,11 @@
 ---
-name: league-akari-shard-development
-description: Use when creating, extending, refactoring, splitting, or reviewing League Akari main or renderer shards, including shard file organization, controller/loader/executor/handler boundaries, naming conventions, renderer TSX usage, platform guards, and public contract compatibility.
+name: league-pilot-shard-development
+description: Use when creating, extending, refactoring, splitting, or reviewing LeaguePilot main or renderer shards, including shard file organization, controller/loader/executor/handler boundaries, naming conventions, renderer TSX usage, platform guards, and public contract compatibility.
 ---
 
-# League Akari Shard Development
+# LeaguePilot Shard Development
 
-Use this skill for any League Akari shard work: creating a new shard, adding a feature to an existing shard, splitting a large shard, normalizing names, or reviewing shard organization.
+Use this skill for any LeaguePilot shard work: creating a new shard, adding a feature to an existing shard, splitting a large shard, normalizing names, or reviewing shard organization.
 
 The goal is stable shard architecture: clear responsibilities, boring public contracts, platform-safe side effects, and minimal behavior drift.
 
@@ -50,7 +50,7 @@ These rules are hard requirements for any newly created shard and for any featur
   - `settingFactory`, not `setting`
   - `logger`, not `log`
   - `ipc`, not `ipcMain`
-- In League Akari shard classes, private fields and methods use a leading `_` prefix.
+- In LeaguePilot shard classes, private fields and methods use a leading `_` prefix.
   Keep injected constructor properties private and underscored unless they are intentionally public.
 - Keep platform-specific side effects behind explicit platform guard helpers.
 - Renderer VNode-heavy modules should be `.tsx`; avoid large `h(...)` chains.

@@ -21,7 +21,7 @@ describe('native workspace runtime contract', () => {
 
     expect(rootPackage.workspaces).toContain('native/win32-x64')
     expect(rootPackage.optionalDependencies).toMatchObject({
-      'league-akari-native-win32': 'workspace:*'
+      'league-pilot-native-win32': 'workspace:*'
     })
     expect(nativePackage).toMatchObject({
       main: 'dist/index.js',

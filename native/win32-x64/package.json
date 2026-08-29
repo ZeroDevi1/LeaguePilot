@@ -1,8 +1,8 @@
 {
-  "name": "league-akari-native-win32",
+  "name": "league-pilot-native-win32",
   "version": "0.0.0",
   "private": true,
-  "description": "Internal Windows native bindings for League Akari",
+  "description": "Internal Windows native bindings for LeaguePilot",
   "os": [
     "win32"
   ],

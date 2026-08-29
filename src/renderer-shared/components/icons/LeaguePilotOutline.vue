@@ -18,7 +18,7 @@
       text-anchor="middle"
       dominant-baseline="central"
     >
-      LA
+      LP
     </text>
   </svg>
 </template>

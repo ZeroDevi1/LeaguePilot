@@ -52,7 +52,7 @@
 
     <StoryPanel
       title="Empty states"
-      description="These provider values keep the same Storybook resource runtime but intentionally provide no active game data, covering the disconnected, idle, and disabled panel states without touching League Akari stores."
+      description="These provider values keep the same Storybook resource runtime but intentionally provide no active game data, covering the disconnected, idle, and disabled panel states without touching LeaguePilot stores."
     >
       <div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
         <div class="empty-state-frame">

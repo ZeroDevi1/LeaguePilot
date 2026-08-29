@@ -35,7 +35,7 @@ toolkit:
         label: Lock Game Settings
         description: Prevent in-game changes from overwriting the settings you already use. Unlock them when you need to edit settings.
         details:
-          readonly: When locked, League Akari makes the League settings file read-only. The game can still read your current settings, but new changes will not be saved over them.
+          readonly: When locked, LeaguePilot makes the League settings file read-only. The game can still read your current settings, but new changes will not be saved over them.
           writable: Unlocking restores write access, so graphics, hotkeys, and other in-game changes save normally again.
           scope: This only affects the settings file for the currently connected client installation.
         setToReadonly: Game settings locked

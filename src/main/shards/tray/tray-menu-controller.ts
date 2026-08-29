@@ -95,7 +95,7 @@ export class TrayMenuController {
 
     this._contextMenu = Menu.buildFromTemplate([
       {
-        label: 'League Akari',
+        label: 'LeaguePilot',
         type: 'normal',
         click: () => windowManager.mainWindow.showOrRestore()
       },
@@ -127,7 +127,7 @@ export class TrayMenuController {
 
     // 全局标题栏
     if (process.platform !== 'darwin') {
-      this._trayIcon.setToolTip('League Akari')
+      this._trayIcon.setToolTip('LeaguePilot')
     }
 
     this._trayIcon.addListener('click', () => windowManager.mainWindow.showOrRestore())

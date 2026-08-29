@@ -11,7 +11,7 @@ import { OpggWindowSettings, OpggWindowState } from './state'
 export class AkariOpggWindow extends BaseAkariWindow<OpggWindowState, OpggWindowSettings> {
   static readonly NAMESPACE_SUFFIX = 'opgg-window'
   static readonly HTML_ENTRY = 'opgg-window.html'
-  static readonly TITLE = 'OP.GG Akari'
+  static readonly TITLE = 'LeaguePilot - OP.GG'
   static readonly BASE_WIDTH = 480
   static readonly BASE_HEIGHT = 720
   static readonly MIN_WIDTH = 530

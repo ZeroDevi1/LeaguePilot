@@ -6,7 +6,7 @@ import { ref, watch } from 'vue'
 import NoticeModal from './NoticeModal.vue'
 
 const noticeContent = `
-## League Akari 服务公告
+## LeaguePilot 服务公告
 
 近期我们会对远端服务进行一次例行维护，维护期间部分在线数据可能短暂不可用。
 
@@ -20,7 +20,7 @@ const noticeContent = `
 
 已经保存到本地的设置与基础功能不受影响，无需提前退出应用。
 
-> 如果维护结束后仍无法连接，请重启 League Akari 后再试。
+> 如果维护结束后仍无法连接，请重启 LeaguePilot 后再试。
 `
 
 const notice: AkariNotice = {
@@ -39,7 +39,7 @@ const contactChannels: AkariContactChannels = {
     {
       id: 'qq-group',
       platform: 'qq',
-      name: 'League Akari 交流群',
+      name: 'LeaguePilot 交流群',
       identifier: '123456789',
       url: 'https://example.com/qq-group',
       password: 'akari'
@@ -47,8 +47,8 @@ const contactChannels: AkariContactChannels = {
     {
       id: 'discord',
       platform: 'discord',
-      name: 'League Akari Discord',
-      identifier: 'discord.gg/league-akari',
+      name: 'LeaguePilot Discord',
+      identifier: 'discord.gg/league-pilot',
       url: 'https://example.com/discord',
       password: null
     },
@@ -56,8 +56,8 @@ const contactChannels: AkariContactChannels = {
       id: 'website',
       platform: 'website',
       name: '项目主页',
-      identifier: 'league-akari.example.com',
-      url: 'https://example.com/league-akari',
+      identifier: 'league-pilot.example.com',
+      url: 'https://example.com/league-pilot',
       password: null
     }
   ]

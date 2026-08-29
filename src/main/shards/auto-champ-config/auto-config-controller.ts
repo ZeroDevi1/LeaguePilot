@@ -344,7 +344,7 @@ export class AutoChampConfigController {
     try {
       await leagueClient.api.chat.chatSend(
         leagueClient.data.chat.conversations.championSelect.id,
-        `[League Akari] ${message}`,
+        `[LeaguePilot] ${message}`,
         'celebration'
       )
     } catch (error) {

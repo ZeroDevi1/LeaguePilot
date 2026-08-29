@@ -13,7 +13,7 @@ settings:
       title: 基础
       locale:
         label: 语言
-        description: 设置 League Akari 的主语言
+        description: 设置 LeaguePilot 的主语言
       mainWindowCloseAction:
         label: 主窗口关闭策略
         description: 当关闭主窗口时所执行的行为

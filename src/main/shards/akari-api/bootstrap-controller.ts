@@ -30,7 +30,7 @@ export class AkariApiBootstrapController {
     timeout: AKARI_API_REQUEST_TIMEOUT,
     headers: {
       Accept: 'application/json',
-      'User-Agent': `LeagueAkari/${app.getVersion()}`,
+      'User-Agent': `LeaguePilot/${app.getVersion()}`,
       'x-akari-version': app.getVersion()
     }
   })
@@ -38,7 +38,7 @@ export class AkariApiBootstrapController {
     baseURL: DEFAULT_AKARI_SERVICE_BASE_URLS.static,
     timeout: AKARI_API_REQUEST_TIMEOUT,
     headers: {
-      'User-Agent': `LeagueAkari/${app.getVersion()}`,
+      'User-Agent': `LeaguePilot/${app.getVersion()}`,
       'x-akari-version': app.getVersion()
     }
   })
@@ -55,7 +55,7 @@ export class AkariApiBootstrapController {
       axios.create({
         timeout: AKARI_API_REQUEST_TIMEOUT,
         headers: {
-          'User-Agent': `LeagueAkari/${app.getVersion()}`
+          'User-Agent': `LeaguePilot/${app.getVersion()}`
         }
       })
   }

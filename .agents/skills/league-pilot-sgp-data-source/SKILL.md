@@ -1,9 +1,9 @@
 ---
-name: league-akari-sgp-data-source
-description: Use when implementing or reviewing League Akari SGP/LCU data-source selection, SGP API clients, League Servers remote config, Tencent cross-region queries, token handling, or per-feature SGP interoperability.
+name: league-pilot-sgp-data-source
+description: Use when implementing or reviewing LeaguePilot SGP/LCU data-source selection, SGP API clients, League Servers remote config, Tencent cross-region queries, token handling, or per-feature SGP interoperability.
 ---
 
-# League Akari SGP Data Source
+# LeaguePilot SGP Data Source
 
 Use this skill before changing logic that decides whether a feature uses LCU or SGP, touches
 SGP server config, adds SGP endpoints, or reasons about cross-region access.
@@ -15,10 +15,10 @@ SGP server config, adds SGP endpoints, or reasons about cross-region access.
   Riot/Tencent backend services: `LeagueClient.exe -> server`.
 - SGP is undocumented. Endpoint knowledge comes from observed client traffic and remote config, not
   from a stable public contract.
-- League Akari can call SGP directly because the League Client exposes usable SGP auth material
+- LeaguePilot can call SGP directly because the League Client exposes usable SGP auth material
   through LCU events.
 - SGP can expose backend data that LCU hides or reshapes, but support is endpoint-specific.
-- **SGP server ID** is a League Akari abstraction, not necessarily a backend region name.
+- **SGP server ID** is a LeaguePilot abstraction, not necessarily a backend region name.
 - SGP endpoint URLs are packet-captured configuration. Do not infer URL patterns from server IDs.
 
 Core tension: SGP is the direct backend path, but it is undocumented, config-sensitive, and more
@@ -57,7 +57,7 @@ SGP endpoint knowledge is configuration, not protocol truth.
 
 SGP direct requests do not always follow the same network path as the League Client.
 
-- In accelerator/VPN scenarios, the League Client may be accelerated while League Akari's direct SGP
+- In accelerator/VPN scenarios, the League Client may be accelerated while LeaguePilot's direct SGP
   HTTP is not.
 - LCU can remain healthy because it is local and the League Client owns its backend connectivity.
 - Treat direct SGP network failures separately from "player/server not found" and from local LCU

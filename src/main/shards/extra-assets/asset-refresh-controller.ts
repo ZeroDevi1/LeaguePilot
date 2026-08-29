@@ -1,6 +1,8 @@
 import { TimeoutTask } from '@main/utils/timer'
+import { adaptArammetaHexCatalog } from '@shared/data-adapter/arammeta'
 
 import {
+  ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL,
   type ExtraAssetsMainContext,
   GTIMG_HERO_LIST_UPDATE_INTERVAL,
   GTIMG_KIWI_AUGMENTS_UPDATE_INTERVAL,
@@ -11,6 +13,7 @@ export class ExtraAssetsRefreshController {
   private _gtimgTask = new TimeoutTask(this._updateGtimgHeroList.bind(this))
   private _gtimgKiwiAugmentsTask = new TimeoutTask(this._updateGtimgKiwiAugments.bind(this))
   private _opggAramBalanceTask = new TimeoutTask(this._updateOpggAramBalance.bind(this))
+  private _arammetaHexCatalogTask = new TimeoutTask(this._updateArammetaHexCatalog.bind(this))
 
   constructor(private readonly context: ExtraAssetsMainContext) {}
 
@@ -19,6 +22,7 @@ export class ExtraAssetsRefreshController {
     void this._updateGtimgHeroList()
     void this._updateGtimgKiwiAugments()
     void this._updateOpggAramBalance()
+    void this._updateArammetaHexCatalog()
   }
 
   private async _updateGtimgHeroList() {
@@ -66,8 +70,29 @@ export class ExtraAssetsRefreshController {
     }
   }
 
+  private async _updateArammetaHexCatalog() {
+    const { arammeta, arammetaApi, logger } = this.context
+
+    try {
+      logger.info('arammeta: updating Mayhem hex catalog')
+      const catalog = adaptArammetaHexCatalog(await arammetaApi.getTierList())
+      if (!catalog) {
+        throw new Error('arammeta returned no usable hex catalog')
+      }
+
+      arammeta.setHexCatalog(catalog)
+      logger.info(
+        `arammeta: updated Mayhem hex catalog (${Object.keys(catalog.champions).length} champions)`
+      )
+    } catch (error) {
+      logger.warn('arammeta: failed to update Mayhem hex catalog', error)
+    } finally {
+      this._arammetaHexCatalogTask.start({ delay: ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL })
+    }
+  }
+
   private _registerHttpProxy() {
-    const { appCommon, gtimgApi, mobxUtils, opggHttpClient } = this.context
+    const { appCommon, arammetaApi, gtimgApi, mobxUtils, opggHttpClient } = this.context
 
     mobxUtils.reaction(
       () => appCommon.settings.httpProxy,
@@ -81,9 +106,14 @@ export class ExtraAssetsRefreshController {
             host: httpProxy.host,
             port: httpProxy.port
           }
+          arammetaApi.http.defaults.proxy = {
+            host: httpProxy.host,
+            port: httpProxy.port
+          }
         } else if (httpProxy.strategy === 'disable') {
           gtimgApi.http.defaults.proxy = false
           opggHttpClient.defaults.proxy = false
+          arammetaApi.http.defaults.proxy = false
         }
       },
       { fireImmediately: true }

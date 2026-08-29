@@ -17,8 +17,8 @@
     "paths": {
       "@shared/*": ["./src/shared/*"],
       "@main/*": ["./src/main/*"],
-      "league-akari-native-win32": ["./native/win32-x64/lib/index.ts"],
-      "league-akari-native-win32/*": ["./native/win32-x64/lib/*"]
+      "league-pilot-native-win32": ["./native/win32-x64/lib/index.ts"],
+      "league-pilot-native-win32/*": ["./native/win32-x64/lib/*"]
     },
     "noUnusedLocals": true,
     "noUnusedParameters": true,

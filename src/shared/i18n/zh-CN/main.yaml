@@ -88,13 +88,13 @@ client-installation-main:
   jumpList:
     launchTcls:
       title: 启动 TCLS 客户端
-      description: 启动 League Akari 并启动 TCLS 客户端
+      description: 启动 LeaguePilot 并启动 TCLS 客户端
     launchRiot:
       title: 启动 Riot 客户端
-      description: 启动 League Akari 并启动 Riot 客户端
+      description: 启动 LeaguePilot 并启动 Riot 客户端
     launchWeGame:
       title: 启动 WeGame
-      description: 启动 League Akari 并启动 WeGame
+      description: 启动 LeaguePilot 并启动 WeGame
 
 in-game-send-main:
   presets:

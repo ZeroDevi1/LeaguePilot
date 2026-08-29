@@ -12,7 +12,7 @@ import { AuxWindowSettings, AuxWindowState } from './state'
 export class AkariAuxWindow extends BaseAkariWindow<AuxWindowState, AuxWindowSettings> {
   static readonly NAMESPACE_SUFFIX = 'aux-window'
   static readonly HTML_ENTRY = 'aux-window.html'
-  static readonly TITLE = 'Mini Akari'
+  static readonly TITLE = 'LeaguePilot Mini'
   static readonly BASE_WIDTH = 340
   static readonly BASE_HEIGHT = 420
   static readonly MIN_WIDTH = 340

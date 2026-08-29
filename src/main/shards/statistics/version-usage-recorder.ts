@@ -6,7 +6,7 @@ export class VersionUsageRecorder {
   constructor(private readonly context: StatisticsMainContext) {}
 
   /**
-   * 统计 LeagueAkari 的版本使用量
+   * 统计 LeaguePilot 的版本使用量
    * @returns
    */
   async recordOnce() {

@@ -1,12 +1,25 @@
 {
-  "name": "league-akari",
+  "name": "league-pilot",
   "version": "1.5.2-beta",
   "author": {
     "name": "hanxven",
     "email": "hanxven@gmail.com"
   },
-  "description": "League Akari",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZeroDevi1/LeaguePilot.git"
+  },
+  "homepage": "https://github.com/ZeroDevi1/LeaguePilot#readme",
+  "bugs": {
+    "url": "https://github.com/ZeroDevi1/LeaguePilot/issues"
+  },
+  "description": "LeaguePilot - a League of Legends client toolkit based on the LCU API",
   "main": "./out/main/main.js",
+  "overwolf": {
+    "packages": [
+      "gep"
+    ]
+  },
   "scripts": {
     "format": "prettier --write .",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
@@ -17,6 +30,8 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev --watch -- --inspect",
     "dev:no-watch": "electron-vite dev -- --inspect",
+    "dev:overwolf": "node scripts/run-ow-electron-vite.cjs dev --watch -- --inspect",
+    "dev:overwolf:no-watch": "node scripts/run-ow-electron-vite.cjs dev -- --inspect",
     "storybook": "storybook dev -p 6006",
     "build:storybook": "storybook build",
     "build:native:win": "node native/win32-x64/scripts/build.js",
@@ -25,6 +40,8 @@
     "postinstall": "node scripts/clear-electron-rebuild-metadata.cjs",
     "build:win": "npm run build && electron-builder --win --config",
     "build:win:native": "npm run build:native:win && npm run build:win",
+    "rebuild:overwolf": "node scripts/clear-electron-rebuild-metadata.cjs @overwolf/ow-electron",
+    "build:win:overwolf": "npm run build && node scripts/run-ow-electron-builder.cjs",
     "gen-types": "tsc --declaration --emitDeclarationOnly --outDir ./out/types -p tsconfig.node.json",
     "build:mac": "npm run build && electron-builder --mac --config"
   },
@@ -45,7 +62,7 @@
     "zod": "^4.4.3"
   },
   "optionalDependencies": {
-    "league-akari-native-win32": "workspace:*"
+    "league-pilot-native-win32": "workspace:*"
   },
   "devDependencies": {
     "@codemirror/lang-javascript": "^6.2.5",
@@ -55,6 +72,8 @@
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron/notarize": "^3.1.1",
     "@modyfi/vite-plugin-yaml": "^1.1.1",
+    "@overwolf/ow-electron": "42.7.1",
+    "@overwolf/ow-electron-builder": "26.9.0",
     "@storybook/vue3-vite": "^10.5.5",
     "@swc/core": "^1.15.47",
     "@tailwindcss/vite": "^4.3.3",

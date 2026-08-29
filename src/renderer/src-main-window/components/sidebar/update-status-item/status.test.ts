@@ -13,9 +13,9 @@ const release: SelfUpdateReleaseInfo = {
   artifact: {
     platform: 'win32',
     arch: 'x64',
-    fileName: 'LeagueAkari-v1.6.0-win.7z',
+    fileName: 'LeaguePilot-v1.6.0-win.7z',
     size: 1024,
-    downloadUrl: 'https://example.com/LeagueAkari-v1.6.0-win.7z',
+    downloadUrl: 'https://example.com/LeaguePilot-v1.6.0-win.7z',
     contentType: 'application/x-7z-compressed',
     sha256: null
   }

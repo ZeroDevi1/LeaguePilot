@@ -1,4 +1,5 @@
 import { GtimgHeroListJs, GtimgKiwiAugments, Hero } from '@shared/data-sources/gtimg'
+import type { ArammetaHexCatalog } from '@shared/types/arammeta'
 import type { OpggAramBalanceItem } from '@shared/types/opgg'
 import { defineStore } from 'pinia'
 import { computed, shallowReactive } from 'vue'
@@ -27,6 +28,10 @@ export const useExtraAssetsStore = defineStore('shard:extra-assets-renderer', ()
 
   const opgg = shallowReactive({
     aramBalance: null as OpggAramBalanceItem[] | null
+  })
+
+  const arammeta = shallowReactive({
+    hexCatalog: null as ArammetaHexCatalog | null
   })
 
   const opggAramBalanceMap = computed(() => {
@@ -60,6 +65,7 @@ export const useExtraAssetsStore = defineStore('shard:extra-assets-renderer', ()
   return {
     gtimg,
     opgg,
+    arammeta,
 
     // computed
     heroListMap,

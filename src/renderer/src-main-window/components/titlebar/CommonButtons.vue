@@ -116,7 +116,7 @@ import {
   useMainWindowStore,
   useOpggWindowStore
 } from '@renderer-shared/shards/window-manager/store'
-import { LEAGUE_AKARI_GITHUB } from '@shared/constants/common'
+import { LEAGUE_PILOT_GITHUB } from '@shared/constants/common'
 import {
   AppThemeId,
   AppThemeSetting,
@@ -159,7 +159,7 @@ const handleShowOpggWindow = () => {
 }
 
 const handleToGithub = () => {
-  window.open(LEAGUE_AKARI_GITHUB, '_blank')
+  window.open(LEAGUE_PILOT_GITHUB, '_blank')
 }
 
 const themeToneLabel = (id: AppThemeId) => {

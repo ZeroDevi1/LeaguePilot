@@ -1,4 +1,4 @@
-# League Akari Native Packages
+# LeaguePilot Native Packages
 
 Native packages live under platform-architecture directories, for example `native/win32-x64`.
 

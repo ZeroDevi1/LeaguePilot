@@ -34,8 +34,13 @@
           }"
         >
           <div
-            class="flex h-8 min-w-0 items-center gap-1"
+            class="flex h-8 min-w-0 items-center gap-1 rounded"
+            :class="{
+              'bg-akari-500/7 ring-akari-500/35 dark:bg-akari-400/10 dark:ring-akari-400/30 ring-1':
+                isLiveOffer(a.id)
+            }"
             v-for="(a, i) of group.augments.slice(0, isAugmentsExpanded ? Infinity : 16)"
+            :key="a.id"
           >
             <!-- name -->
             <div class="min-w-6 shrink-0 text-[10px] text-[#666666] dark:text-[#b2b2b2]">
@@ -87,10 +92,12 @@ import { NCheckbox, NIcon, NSelect, NTabPane, NTabs, SelectOption } from 'naive-
 import { computed, ref, watch, watchEffect } from 'vue'
 
 import { useOpgg } from '../context'
+import { pinLiveItems, useLiveAugmentOffer } from '../utils/live-augment-offer'
 
 const { champion, kiwiAugments } = useOpgg()
 const { t } = useTranslation()
 const lcs = useLeagueClientStore()
+const { isLiveOffer } = useLiveAugmentOffer()
 
 const augmentTab = ref<AugmentTab | undefined>(undefined)
 const augmentSort = ref<AugmentSort>('default')
@@ -181,11 +188,20 @@ const augments = computed(() => {
     }
   })
 
-  const sortedAugments = sortAugments(mappedByRarity)
+  const sortedAugments = pinLiveItems(sortAugments(mappedByRarity), (item) => isLiveOffer(item.id))
 
-  const kSilver = sortAugments(mappedByRarity.filter((item) => item.rarity === 'kSilver'))
-  const kGold = sortAugments(mappedByRarity.filter((item) => item.rarity === 'kGold'))
-  const kPrismatic = sortAugments(mappedByRarity.filter((item) => item.rarity === 'kPrismatic'))
+  const kSilver = pinLiveItems(
+    sortAugments(mappedByRarity.filter((item) => item.rarity === 'kSilver')),
+    (item) => isLiveOffer(item.id)
+  )
+  const kGold = pinLiveItems(
+    sortAugments(mappedByRarity.filter((item) => item.rarity === 'kGold')),
+    (item) => isLiveOffer(item.id)
+  )
+  const kPrismatic = pinLiveItems(
+    sortAugments(mappedByRarity.filter((item) => item.rarity === 'kPrismatic')),
+    (item) => isLiveOffer(item.id)
+  )
 
   const groups: {
     rarity: AugmentTab

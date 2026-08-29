@@ -1,9 +1,9 @@
 ---
-name: league-akari-ui-components
-description: Use when implementing or reviewing League Akari renderer UI components, especially consistency across related components, i18n component interpolation, multiple independent pluralized counts, Tailwind utility usage in templates or SFC style blocks, or native semantic HTML elements in the Naive UI renderer.
+name: league-pilot-ui-components
+description: Use when implementing or reviewing LeaguePilot renderer UI components, especially consistency across related components, i18n component interpolation, multiple independent pluralized counts, Tailwind utility usage in templates or SFC style blocks, or native semantic HTML elements in the Naive UI renderer.
 ---
 
-# League Akari UI Components
+# LeaguePilot UI Components
 
 Use this skill for the UI component details listed here.
 
@@ -130,7 +130,7 @@ Project references:
 
 ## Native Semantic Elements
 
-League Akari uses Naive UI for component primitives and does not include Tailwind's base/preflight layer as the foundation for renderer styling.
+LeaguePilot uses Naive UI for component primitives and does not include Tailwind's base/preflight layer as the foundation for renderer styling.
 
 When using native semantic elements such as `button`, `input`, `select`, `ul`, `ol`, or heading tags, do not assume browser defaults or Tailwind base normalization will match the surrounding UI. Either:
 

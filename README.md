@@ -1,7 +1,7 @@
 <div align="center">
   <div>
     <img
-    src="https://github.com/LeagueAkari/LeagueAkari/raw/HEAD/pictures/logo.png"
+    src="https://github.com/ZeroDevi1/LeaguePilot/raw/HEAD/pictures/logo.png"
     width="128"
     height="128"
     />
@@ -10,15 +10,15 @@
 </div>
 
 <p align="center">
-    <a href="https://github.com/LeagueAkari/LeagueAkari/releases"><img src="https://img.shields.io/github/release/LeagueAkari/LeagueAkari.svg?style=flat-square&maxAge=600" alt="Downloads"></a>
-    <a href="https://github.com/LeagueAkari/LeagueAkari/releases">
-    <img src="https://img.shields.io/github/downloads/LeagueAkari/LeagueAkari/total?style=flat&label=Downloads"></a>
-    <a href="https://github.com/LeagueAkari/LeagueAkari/stargazers">
-    <img src="https://img.shields.io/github/stars/LeagueAkari/LeagueAkari?style=flat&label=Stars">
+    <a href="https://github.com/ZeroDevi1/LeaguePilot/releases"><img src="https://img.shields.io/github/release/ZeroDevi1/LeaguePilot.svg?style=flat-square&maxAge=600" alt="Downloads"></a>
+    <a href="https://github.com/ZeroDevi1/LeaguePilot/releases">
+    <img src="https://img.shields.io/github/downloads/ZeroDevi1/LeaguePilot/total?style=flat&label=Downloads"></a>
+    <a href="https://github.com/ZeroDevi1/LeaguePilot/stargazers">
+    <img src="https://img.shields.io/github/stars/ZeroDevi1/LeaguePilot?style=flat&label=Stars">
   </a>
 </p>
 
-# 1. League Akari
+# 1. LeaguePilot
 
 A League of Legends client toolkit based on the LCU API.
 
@@ -28,18 +28,9 @@ Admin privileges are not required to run, but they enable additional features.
 
 Supports most of the riot servers (not including Tencent).
 
-## 1.3 Feedback Group
+## 1.3 Feedback
 
-Fun places for casual chats, party setups, bug reports, and suggestions.
-
-QQ Group 2: [543703181](https://qm.qq.com/q/3V9pqYEspq) (Passcode: akari)
-QQ Group 3: [1097069247](https://qm.qq.com/q/F5GG8l9HY6) (Passcode: akari)
-
-Telegram Group: [@KawaiiAkari](https://t.me/KawaiiAkari)
-
-## 1.4 Beta Versions (.rabi)
-
-"rabi" versions with features slated for the next release are periodically shared in the group chat.
+Please use [GitHub Issues](https://github.com/ZeroDevi1/LeaguePilot/issues) for bug reports, feature requests, and suggestions.
 
 # 2. Contributing to Development
 
@@ -55,7 +46,7 @@ Interested in the project? Feel free to contribute by submitting PRs and adding 
 
 # 3. Build & Run
 
-This section describes how to build League Akari from the source code.
+This section describes how to build LeaguePilot from the source code.
 
 ## 3.1 Electron Main Program
 
@@ -73,18 +64,19 @@ A valid GitHub PAT is required to install private packages.
 
 ## 4. References
 
-The development of **League Akari** has been greatly inspired by several outstanding open-source projects. These projects provided valuable insights and guidance for various modules of the software. We would like to extend our sincere appreciation to the authors and maintainers of the following resources:
+The development of **LeaguePilot** builds on ideas and implementation experience from several outstanding open-source projects. We sincerely thank the authors and maintainers of the following resources, especially the original [League Akari](https://github.com/LeagueAkari/LeagueAkari) project on which LeaguePilot is based:
 
-| Project                                                                                            | Description                                                                          |
-| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [Pengu Loader](https://github.com/PenguLoader/PenguLoader)                                         | The ultimate JavaScript plugin loader, build your unmatched LoL Client.              |
-| [League of Legends LCU and Riot Client API Docs](https://github.com/KebsCS/lcu-and-riotclient-api) | League of Legends LCU and Riot Client API Docs                                       |
-| [Community Dragon](https://www.communitydragon.org/documentation/assets)                           | Resource management and asset documentation reference.                               |
-| [Seraphine](https://github.com/Zzaphkiel/Seraphine)                                                | Provided integration approaches and insights into combining multiple tools.          |
-| [fix-lcu-window](https://github.com/LeagueTavern/fix-lcu-window)                                   | Resolved the issue with abnormal window size of the League of Legends client.        |
-| [Joi](https://github.com/watchingfun/Joi)                                                          | A League of Legends assistant. tool                                                  |
-| [vscode-league-respawn-timer](https://github.com/Coooookies/vscode-league-respawn-timer)           | An extension to display League of Legends player respawn time in Visual Studio Code. |
-| [LeaguePrank](https://github.com/LeagueTavern/LeaguePrank)                                         | Provided inspiration for playful and humorous features.                              |
+| Project                                                                                            | Description                                                                             |
+| -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [League Akari](https://github.com/LeagueAkari/LeagueAkari)                                         | The original project. LeaguePilot gratefully acknowledges its authors and contributors. |
+| [Pengu Loader](https://github.com/PenguLoader/PenguLoader)                                         | The ultimate JavaScript plugin loader, build your unmatched LoL Client.                 |
+| [League of Legends LCU and Riot Client API Docs](https://github.com/KebsCS/lcu-and-riotclient-api) | League of Legends LCU and Riot Client API Docs                                          |
+| [Community Dragon](https://www.communitydragon.org/documentation/assets)                           | Resource management and asset documentation reference.                                  |
+| [Seraphine](https://github.com/Zzaphkiel/Seraphine)                                                | Provided integration approaches and insights into combining multiple tools.             |
+| [fix-lcu-window](https://github.com/LeagueTavern/fix-lcu-window)                                   | Resolved the issue with abnormal window size of the League of Legends client.           |
+| [Joi](https://github.com/watchingfun/Joi)                                                          | A League of Legends assistant. tool                                                     |
+| [vscode-league-respawn-timer](https://github.com/Coooookies/vscode-league-respawn-timer)           | An extension to display League of Legends player respawn time in Visual Studio Code.    |
+| [LeaguePrank](https://github.com/LeagueTavern/LeaguePrank)                                         | Provided inspiration for playful and humorous features.                                 |
 
 # 5. Disclaimer
 
@@ -96,4 +88,4 @@ Additionally, **this application is not officially supported or endorsed by Riot
 
 This disclaimer is intended to provide transparency and enable users to make informed decisions. Thank you for your understanding, and please ensure fair play in the gaming environment.
 
-[![Star History Chart](https://star-history.dera.page/svg?repos=LeagueAkari/LeagueAkari&type=Date)](https://star-history.dera.page/#LeagueAkari/LeagueAkari&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=ZeroDevi1/LeaguePilot&type=Date)](https://star-history.dera.page/#ZeroDevi1/LeaguePilot&Date)

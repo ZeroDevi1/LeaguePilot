@@ -10,7 +10,7 @@ import { MainWindowSettings, MainWindowState } from './state'
 export class AkariMainWindow extends BaseAkariWindow<MainWindowState, MainWindowSettings> {
   static readonly NAMESPACE_SUFFIX = 'main-window'
   static readonly HTML_ENTRY = 'main-window.html'
-  static readonly TITLE = 'League Akari'
+  static readonly TITLE = 'LeaguePilot'
   static readonly BASE_WIDTH = 1500
   static readonly BASE_HEIGHT = 860
   static readonly MIN_WIDTH = 840

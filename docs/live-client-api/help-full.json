@@ -1,0 +1,1619 @@
+{
+  "events": [
+    {
+      "description": "Fired when a callback is invoked.",
+      "name": "OnCallback",
+      "nameSpace": "",
+      "tags": ["$builtin"],
+      "type": {
+        "elementType": "",
+        "type": "BindingCallbackEvent"
+      }
+    }
+  ],
+  "functions": [
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to remove",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Cancels the asynchronous operation or removes its completion status.",
+      "help": "",
+      "name": "AsyncDelete",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to check",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieves the result of a completed asynchronous operation.",
+      "help": "",
+      "name": "AsyncResult",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to check",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieves details on the current state of an asynchronous operation.",
+      "help": "",
+      "name": "AsyncStatus",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "Operation to cancel",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Attempts to cancel an asynchronous operation",
+      "help": "",
+      "name": "Cancel",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Closes the connection.",
+      "help": "",
+      "name": "Exit",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Get all data about the active player",
+      "help": "",
+      "name": "GetLiveclientdataActiveplayer",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["champions", "activePlayer"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Get Abilities for the active player",
+      "help": "",
+      "name": "GetLiveclientdataActiveplayerabilities",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["champions", "abilities", "activePlayer"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Returns the player name",
+      "help": "",
+      "name": "GetLiveclientdataActiveplayername",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "string"
+      },
+      "tags": ["activePlayer"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Retrieve the full list of runes for the active player",
+      "help": "",
+      "name": "GetLiveclientdataActiveplayerrunes",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["runes", "activePlayer"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the next event you expect to see",
+          "name": "eventID",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Get all available data",
+      "help": "",
+      "name": "GetLiveclientdataAllgamedata",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["all"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the next event you expect to see",
+          "name": "eventID",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Get a list of events that have occurred in the game",
+      "help": "",
+      "name": "GetLiveclientdataEventdata",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["champions", "events"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Basic data about the game",
+      "help": "",
+      "name": "GetLiveclientdataGamestats",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["game"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "RiotID GameName (with tag) of the player in the format Name#TAG",
+          "name": "riotId",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieve the list of items for the player",
+      "help": "",
+      "name": "GetLiveclientdataPlayeritems",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["items", "allPlayers"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "Heroes team ID. Optional, returns all players on all teams if null. ",
+          "name": "teamID",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "TeamID"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieve the list of heroes in the game and their stats",
+      "help": "",
+      "name": "GetLiveclientdataPlayerlist",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["champions", "units", "allPlayers"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "RiotID GameName (with tag) of the player in the format Name#TAG",
+          "name": "riotId",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieve the basic runes of any player",
+      "help": "",
+      "name": "GetLiveclientdataPlayermainrunes",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["allPlayers", "runes"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "RiotID GameName (with tag) of the player in the format Name#TAG",
+          "name": "riotId",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieve the list of the current scores for the player",
+      "help": "",
+      "name": "GetLiveclientdataPlayerscores",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["allPlayers", "scores"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "RiotID GameName (with tag) of the player in the format Name#TAG",
+          "name": "riotId",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieve the list of the summoner spells for the player",
+      "help": "",
+      "name": "GetLiveclientdataPlayersummonerspells",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["allPlayers"],
+      "threadSafe": false
+    },
+    {
+      "arguments": [
+        {
+          "description": "Name of the function or type to describe",
+          "name": "target",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "Format for returned information",
+          "name": "format",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "RemotingHelpFormat"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Returns information on available functions and types",
+      "help": "With no arguments, returns a list of all available functions and types along with a short description. If a function or type is specified, returns detailed information about it.",
+      "name": "Help",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "API to get a declaration for",
+          "name": "api",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieves the API declaration for a supported API",
+      "help": "",
+      "name": "HttpApiDeclarationV1",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Retrieves the API documentation resource listing",
+      "help": "",
+      "name": "HttpApiDocsV1",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Retrieves the API documentation",
+      "help": "",
+      "name": "HttpApiDocsV2",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [],
+      "async": "",
+      "description": "Retrieves the API documentation",
+      "help": "",
+      "name": "HttpApiDocsV3",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to remove",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Cancels the asynchronous operation or removes its completion status.",
+      "help": "",
+      "name": "HttpAsyncDelete",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to check",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieves the result of a completed asynchronous operation.",
+      "help": "",
+      "name": "HttpAsyncResult",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "ID of the asynchronous operation to check",
+          "name": "asyncToken",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Retrieves details on the current state of an asynchronous operation.",
+      "help": "",
+      "name": "HttpAsyncStatus",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin", "http", "async"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "Name of the event to subscribe to",
+          "name": "eventName",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "Desired format to receive events in. If unspecified, events will be sent in the active result format at the time.",
+          "name": "format",
+          "optional": true,
+          "type": {
+            "elementType": "",
+            "type": "RemotingSerializedFormat"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Subscribes to a given event",
+      "help": "",
+      "name": "Subscribe",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin"],
+      "threadSafe": true
+    },
+    {
+      "arguments": [
+        {
+          "description": "Name of the event to unsubscribe from",
+          "name": "eventName",
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "async": "",
+      "description": "Unsubscribes from a given event",
+      "help": "",
+      "name": "Unsubscribe",
+      "nameSpace": "",
+      "returns": {
+        "elementType": "",
+        "type": "object"
+      },
+      "tags": ["$builtin"],
+      "threadSafe": true
+    }
+  ],
+  "types": [
+    {
+      "description": "Ability Resource",
+      "fields": [],
+      "name": "AbilityResource",
+      "nameSpace": "",
+      "size": 1,
+      "tags": ["champions", "spells"],
+      "values": [
+        {
+          "description": "",
+          "name": "AMMO",
+          "value": 12
+        },
+        {
+          "description": "",
+          "name": "BATTLEFURY",
+          "value": 4
+        },
+        {
+          "description": "",
+          "name": "BLOODWELL",
+          "value": 10
+        },
+        {
+          "description": "",
+          "name": "DRAGONFURY",
+          "value": 5
+        },
+        {
+          "description": "",
+          "name": "ENERGY",
+          "value": 1
+        },
+        {
+          "description": "",
+          "name": "FEROCITY",
+          "value": 9
+        },
+        {
+          "description": "",
+          "name": "GNARFURY",
+          "value": 8
+        },
+        {
+          "description": "",
+          "name": "HEAT",
+          "value": 7
+        },
+        {
+          "description": "",
+          "name": "MANA",
+          "value": 0
+        },
+        {
+          "description": "",
+          "name": "MAX",
+          "value": 15
+        },
+        {
+          "description": "",
+          "name": "MOONLIGHT",
+          "value": 13
+        },
+        {
+          "description": "",
+          "name": "NONE",
+          "value": 2
+        },
+        {
+          "description": "",
+          "name": "OTHER",
+          "value": 14
+        },
+        {
+          "description": "",
+          "name": "RAGE",
+          "value": 6
+        },
+        {
+          "description": "",
+          "name": "SHIELD",
+          "value": 3
+        },
+        {
+          "description": "",
+          "name": "WIND",
+          "value": 11
+        }
+      ]
+    },
+    {
+      "description": "Represents a cancelled asynchronous operation.",
+      "fields": [
+        {
+          "description": "Asynchronous operation token",
+          "name": "asyncToken",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        }
+      ],
+      "name": "BindingAsyncCancelEvent",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["$builtin", "async"],
+      "values": []
+    },
+    {
+      "description": "Represents a failed asynchronous operation.",
+      "fields": [
+        {
+          "description": "Asynchronous operation token",
+          "name": "asyncToken",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        },
+        {
+          "description": "Error message",
+          "name": "error",
+          "offset": 8,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "name": "BindingAsyncFailureEvent",
+      "nameSpace": "",
+      "size": 40,
+      "tags": ["$builtin", "async"],
+      "values": []
+    },
+    {
+      "description": "Possible states of an asynchronous operation.",
+      "fields": [],
+      "name": "BindingAsyncState",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["$builtin", "async"],
+      "values": [
+        {
+          "description": "The operation was cancelled",
+          "name": "Cancelled",
+          "value": 3
+        },
+        {
+          "description": "A request to cancel the operation has been made",
+          "name": "Cancelling",
+          "value": 2
+        },
+        {
+          "description": "The operation encountered an error",
+          "name": "Failed",
+          "value": 5
+        },
+        {
+          "description": "Invalid state",
+          "name": "None",
+          "value": 0
+        },
+        {
+          "description": "The operation is in flight",
+          "name": "Running",
+          "value": 1
+        },
+        {
+          "description": "The operation completed successfully",
+          "name": "Succeeded",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "description": "Represents the parameters of a call to a provided callback.",
+      "fields": [
+        {
+          "description": "ID of the callback being invoked",
+          "name": "id",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        },
+        {
+          "description": "Callback parameters",
+          "name": "parameters",
+          "offset": 8,
+          "optional": false,
+          "type": {
+            "elementType": "object",
+            "type": "vector"
+          }
+        }
+      ],
+      "name": "BindingCallbackEvent",
+      "nameSpace": "",
+      "size": 32,
+      "tags": ["$builtin"],
+      "values": []
+    },
+    {
+      "description": "Describes the exposed native API.",
+      "fields": [
+        {
+          "description": "",
+          "name": "functions",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullFunctionHelp",
+            "type": "vector"
+          }
+        },
+        {
+          "description": "",
+          "name": "types",
+          "offset": 24,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullTypeHelp",
+            "type": "vector"
+          }
+        },
+        {
+          "description": "",
+          "name": "events",
+          "offset": 48,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullEventHelp",
+            "type": "vector"
+          }
+        }
+      ],
+      "name": "BindingFullApiHelp",
+      "nameSpace": "",
+      "size": 72,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes a function parameter.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "type",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "BindingFullTypeIdentifier"
+          }
+        },
+        {
+          "description": "",
+          "name": "optional",
+          "offset": 128,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "bool"
+          }
+        }
+      ],
+      "name": "BindingFullArgumentHelp",
+      "nameSpace": "",
+      "size": 136,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes an enumerator.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "value",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "int32"
+          }
+        }
+      ],
+      "name": "BindingFullEnumValueHelp",
+      "nameSpace": "",
+      "size": 72,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes an event.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "nameSpace",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "type",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "BindingFullTypeIdentifier"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 128,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "tags",
+          "offset": 160,
+          "optional": false,
+          "type": {
+            "elementType": "string",
+            "type": "vector"
+          }
+        }
+      ],
+      "name": "BindingFullEventHelp",
+      "nameSpace": "",
+      "size": 184,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes a member of a struct.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "offset",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        },
+        {
+          "description": "",
+          "name": "type",
+          "offset": 72,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "BindingFullTypeIdentifier"
+          }
+        },
+        {
+          "description": "",
+          "name": "optional",
+          "offset": 136,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "bool"
+          }
+        }
+      ],
+      "name": "BindingFullFieldHelp",
+      "nameSpace": "",
+      "size": 144,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes a function.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "nameSpace",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "arguments",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullArgumentHelp",
+            "type": "vector"
+          }
+        },
+        {
+          "description": "",
+          "name": "returns",
+          "offset": 88,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "BindingFullTypeIdentifier"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 152,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "help",
+          "offset": 184,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "threadSafe",
+          "offset": 216,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "bool"
+          }
+        },
+        {
+          "description": "",
+          "name": "async",
+          "offset": 224,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "tags",
+          "offset": 256,
+          "optional": false,
+          "type": {
+            "elementType": "string",
+            "type": "vector"
+          }
+        }
+      ],
+      "name": "BindingFullFunctionHelp",
+      "nameSpace": "",
+      "size": 280,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes a struct or enum type.",
+      "fields": [
+        {
+          "description": "",
+          "name": "name",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "nameSpace",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "size",
+          "offset": 64,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        },
+        {
+          "description": "",
+          "name": "description",
+          "offset": 72,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "tags",
+          "offset": 104,
+          "optional": false,
+          "type": {
+            "elementType": "string",
+            "type": "vector"
+          }
+        },
+        {
+          "description": "",
+          "name": "fields",
+          "offset": 128,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullFieldHelp",
+            "type": "vector"
+          }
+        },
+        {
+          "description": "",
+          "name": "values",
+          "offset": 152,
+          "optional": false,
+          "type": {
+            "elementType": "BindingFullEnumValueHelp",
+            "type": "vector"
+          }
+        }
+      ],
+      "name": "BindingFullTypeHelp",
+      "nameSpace": "",
+      "size": 176,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Describes the type of a value.",
+      "fields": [
+        {
+          "description": "",
+          "name": "type",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        },
+        {
+          "description": "",
+          "name": "elementType",
+          "offset": 32,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "string"
+          }
+        }
+      ],
+      "name": "BindingFullTypeIdentifier",
+      "nameSpace": "",
+      "size": 64,
+      "tags": ["$builtin", "help"],
+      "values": []
+    },
+    {
+      "description": "Represents generic data for an asynchronous event.",
+      "fields": [
+        {
+          "description": "Asynchronous operation token",
+          "name": "asyncToken",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint32"
+          }
+        },
+        {
+          "description": "Event data",
+          "name": "data",
+          "offset": 8,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "object"
+          }
+        }
+      ],
+      "name": "BindingGenericAsyncEvent",
+      "nameSpace": "",
+      "size": 32,
+      "tags": ["$builtin", "async"],
+      "values": []
+    },
+    {
+      "description": "Represents generic data for an event.",
+      "fields": [
+        {
+          "description": "Event data",
+          "name": "data",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "object"
+          }
+        }
+      ],
+      "name": "BindingGenericEvent",
+      "nameSpace": "",
+      "size": 24,
+      "tags": ["$builtin"],
+      "values": []
+    },
+    {
+      "description": "Help format for binding functions and types.",
+      "fields": [],
+      "name": "BindingHelpFormat",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["$builtin", "help"],
+      "values": [
+        {
+          "description": "Python epytext format",
+          "name": "Epytext",
+          "value": 2
+        },
+        {
+          "description": "Native help format",
+          "name": "Full",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "description": "Color",
+      "fields": [
+        {
+          "description": "",
+          "name": "b",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint8"
+          }
+        },
+        {
+          "description": "",
+          "name": "g",
+          "offset": 1,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint8"
+          }
+        },
+        {
+          "description": "",
+          "name": "r",
+          "offset": 2,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint8"
+          }
+        },
+        {
+          "description": "",
+          "name": "a",
+          "offset": 3,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "uint8"
+          }
+        }
+      ],
+      "name": "Color",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["system"],
+      "values": []
+    },
+    {
+      "description": "Help format for remoting functions and types.",
+      "fields": [],
+      "name": "RemotingHelpFormat",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["$builtin", "help"],
+      "values": [
+        {
+          "description": "Short description format",
+          "name": "Brief",
+          "value": 4
+        },
+        {
+          "description": "Console-friendly description format",
+          "name": "Console",
+          "value": 5
+        },
+        {
+          "description": "Python epytext format",
+          "name": "Epytext",
+          "value": 2
+        },
+        {
+          "description": "Native help format",
+          "name": "Full",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "description": "Well-known privilege levels for bindable functions.",
+      "fields": [],
+      "name": "RemotingPrivilege",
+      "nameSpace": "",
+      "size": 1,
+      "tags": ["$builtin"],
+      "values": [
+        {
+          "description": "Maximum privilege level for remote administrators.",
+          "name": "Admin",
+          "value": 254
+        },
+        {
+          "description": "Maximum possible privilege level. Used for in-process function calls.",
+          "name": "Local",
+          "value": 255
+        },
+        {
+          "description": "Minimum possible privilege level.",
+          "name": "None",
+          "value": 0
+        },
+        {
+          "description": "Maximum privilege level for remote non-administrators.",
+          "name": "User",
+          "value": 127
+        }
+      ]
+    },
+    {
+      "description": "Serialization format for remoting requests and results.",
+      "fields": [],
+      "name": "RemotingSerializedFormat",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["$builtin"],
+      "values": [
+        {
+          "description": "",
+          "name": "JSON",
+          "value": 1
+        },
+        {
+          "description": "",
+          "name": "MsgPack",
+          "value": 3
+        },
+        {
+          "description": "",
+          "name": "YAML",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "description": "Team identification",
+      "fields": [],
+      "name": "TeamID",
+      "nameSpace": "",
+      "size": 4,
+      "tags": ["units"],
+      "values": [
+        {
+          "description": "",
+          "name": "CHAOS",
+          "value": 200
+        },
+        {
+          "description": "",
+          "name": "NEUTRAL",
+          "value": 300
+        },
+        {
+          "description": "",
+          "name": "ORDER",
+          "value": 100
+        },
+        {
+          "description": "",
+          "name": "UNKNOWN",
+          "value": 0
+        }
+      ]
+    },
+    {
+      "description": "2D vector",
+      "fields": [
+        {
+          "description": "",
+          "name": "x",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "y",
+          "offset": 4,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        }
+      ],
+      "name": "Vector2f",
+      "nameSpace": "",
+      "size": 8,
+      "tags": ["units", "movement"],
+      "values": []
+    },
+    {
+      "description": "3D vector",
+      "fields": [
+        {
+          "description": "",
+          "name": "x",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "y",
+          "offset": 4,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "z",
+          "offset": 8,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        }
+      ],
+      "name": "Vector3f",
+      "nameSpace": "",
+      "size": 12,
+      "tags": ["units", "movement"],
+      "values": []
+    },
+    {
+      "description": "4D vector",
+      "fields": [
+        {
+          "description": "",
+          "name": "x",
+          "offset": 0,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "y",
+          "offset": 4,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "z",
+          "offset": 8,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        },
+        {
+          "description": "",
+          "name": "w",
+          "offset": 12,
+          "optional": false,
+          "type": {
+            "elementType": "",
+            "type": "float"
+          }
+        }
+      ],
+      "name": "Vector4f",
+      "nameSpace": "",
+      "size": 16,
+      "tags": ["ui"],
+      "values": []
+    }
+  ]
+}

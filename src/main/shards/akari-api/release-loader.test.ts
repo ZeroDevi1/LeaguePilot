@@ -13,7 +13,7 @@ const latestRelease: AkariRelease = {
     {
       platform: 'win32',
       arch: 'x64',
-      fileName: 'League Akari-1.5.0-win.7z',
+      fileName: 'LeaguePilot-1.5.0-win.7z',
       size: 2048,
       contentType: 'application/x-7z-compressed',
       sha256: null,
@@ -53,7 +53,7 @@ describe('Akari API release loader', () => {
         {
           ...latestRelease.artifacts[0],
           contentType: 'application/octet-stream',
-          fileName: 'League Akari-1.5.0-win.zip'
+          fileName: 'LeaguePilot-1.5.0-win.zip'
         }
       ]
     }

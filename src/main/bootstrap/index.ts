@@ -5,6 +5,7 @@ import { initializeNativeRuntime } from '@main/native'
 import { AkariApiMain } from '@main/shards/akari-api'
 import { AkariProtocolMain } from '@main/shards/akari-protocol'
 import { AppCommonMain } from '@main/shards/app-common'
+import { AugmentOfferMain } from '@main/shards/augment-offer'
 import { AutoChampionConfigMain } from '@main/shards/auto-champ-config'
 import { AutoGameflowMain } from '@main/shards/auto-gameflow'
 import { AutoMiscMain } from '@main/shards/auto-misc'
@@ -238,7 +239,7 @@ export function bootstrap() {
   AkariProtocolMain.register()
 
   logger.info({
-    message: `League Akari ${app.getVersion()}`,
+    message: `LeaguePilot ${app.getVersion()}`,
     namespace: 'app'
   })
 
@@ -347,6 +348,7 @@ export function bootstrap() {
 
     // other
     manager.use(ExtraAssetsMain)
+    manager.use(AugmentOfferMain)
     manager.use(RendererDebugMain)
 
     // external shards

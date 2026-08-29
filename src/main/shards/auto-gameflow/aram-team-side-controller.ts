@@ -75,7 +75,7 @@ export class AutoGameflowAramTeamSideController {
         leagueClient.api.chat
           .chatSend(
             conversationId,
-            `${settings.autoSendARAMTeamSideVisibleToTeam ? '' : '[League Akari] '}${i18next.t(key)}`,
+            `${settings.autoSendARAMTeamSideVisibleToTeam ? '' : '[LeaguePilot] '}${i18next.t(key)}`,
             settings.autoSendARAMTeamSideVisibleToTeam ? undefined : 'celebration'
           )
           .catch((error) => {

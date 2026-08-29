@@ -3,11 +3,11 @@ const path = require('node:path')
 const { Arch } = require('builder-util')
 
 const PACKAGED_RESOURCE_REMOVALS = [
-  path.join('app.asar.unpacked', 'node_modules', 'league-akari-native-win32', 'src'),
+  path.join('app.asar.unpacked', 'node_modules', 'league-pilot-native-win32', 'src'),
   path.join(
     'app.asar.unpacked',
     'node_modules',
-    'league-akari-native-win32',
+    'league-pilot-native-win32',
     'dist',
     'tsconfig.tsbuildinfo'
   )

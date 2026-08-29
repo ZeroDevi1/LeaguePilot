@@ -11,7 +11,7 @@ import { SelfUpdateExecutor } from './update-executor'
 vi.mock('electron', async () => {
   const os = await import('node:os')
   const path = await import('node:path')
-  const testPathRoot = path.join(os.tmpdir(), 'league-akari-test')
+  const testPathRoot = path.join(os.tmpdir(), 'league-pilot-test')
 
   return {
     app: {
@@ -59,9 +59,9 @@ function createRelease(): SelfUpdateReleaseInfo {
     artifact: {
       platform: 'win32',
       arch: 'x64',
-      fileName: 'LeagueAkari-2.0.0-win.7z',
+      fileName: 'LeaguePilot-2.0.0-win.7z',
       size: 100,
-      downloadUrl: 'https://example.com/LeagueAkari-2.0.0-win.7z',
+      downloadUrl: 'https://example.com/LeaguePilot-2.0.0-win.7z',
       contentType: 'application/x-7z-compressed',
       sha256: null
     }

@@ -137,7 +137,7 @@ export class StorageDatabaseLifecycle {
   }
 
   /**
-   * 处理 League Akari 的数据库的升级
+   * 处理 LeaguePilot 数据库的升级
    */
   private async _performUpgrades(r: QueryRunner, currentVersion: number) {
     const pendingUpgrades = Object.entries(this._upgrades)

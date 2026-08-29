@@ -2,8 +2,8 @@
   <div class="grid items-start gap-4 lg:grid-cols-2">
     <StoryPanel title="Product icons">
       <div class="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-        <IconTile label="LeagueAkariOutline">
-          <LeagueAkariOutline />
+        <IconTile label="LeaguePilotOutline">
+          <LeaguePilotOutline />
         </IconTile>
         <IconTile label="Gitee">
           <GiteeSvg />
@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import GiteeSvg from '@renderer-shared/components/icons/GiteeSvg.vue'
-import LeagueAkariOutline from '@renderer-shared/components/icons/LeagueAkariOutline.vue'
+import LeaguePilotOutline from '@renderer-shared/components/icons/LeaguePilotOutline.vue'
 import PositionIcon from '@renderer-shared/components/icons/position-icons/PositionIcon.vue'
 import Atakhan from '@renderer-shared/components/match-card/icons/Atakhan.vue'
 import Baron from '@renderer-shared/components/match-card/icons/Baron.vue'

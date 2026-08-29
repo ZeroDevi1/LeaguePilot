@@ -42,8 +42,8 @@ describe('Akari API service discovery', () => {
   })
 
   it('resolves and encodes static object names', () => {
-    expect(resolveAkariStaticUrl(DEFAULT_AKARI_STATIC_BASE_URL, 'League Akari-1.5.0-win.7z')).toBe(
-      'https://akari-static.yuru-yuri.com/League%20Akari-1.5.0-win.7z'
+    expect(resolveAkariStaticUrl(DEFAULT_AKARI_STATIC_BASE_URL, 'LeaguePilot-1.5.0-win.7z')).toBe(
+      'https://akari-static.yuru-yuri.com/LeaguePilot-1.5.0-win.7z'
     )
   })
 

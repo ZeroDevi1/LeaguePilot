@@ -170,9 +170,9 @@
       </SettingsSection>
       <SettingsSection v-if="as.isElevated">
         <template #header>
-          <LeagueAkariSpan
+          <LeaguePilotSpan
             class="text-sm leading-5 font-bold text-black/80 dark:text-white/90"
-            text="League Akari X"
+            text="LeaguePilot X"
           />
         </template>
         <div class="p-3 text-[13px]">{{ t('settings.debug.inAdministrator.description') }}</div>
@@ -201,7 +201,7 @@
             label-placement="top"
             class="select-text"
           >
-            <NDescriptionsItem label="League Akari Version">{{
+            <NDescriptionsItem label="LeaguePilot Version">{{
               runtimeInfo.version
             }}</NDescriptionsItem>
             <NDescriptionsItem label="PID">{{ runtimeInfo.pid }}</NDescriptionsItem>
@@ -252,7 +252,7 @@
 
 <script setup lang="tsx">
 import CopyableText from '@renderer-shared/components/CopyableText.vue'
-import LeagueAkariSpan from '@renderer-shared/components/LeagueAkariSpan.vue'
+import LeaguePilotSpan from '@renderer-shared/components/LeaguePilotSpan.vue'
 import SettingsRow from '@main-window/settings-navigation/NavigableSettingsRow.vue'
 import SettingsSection from '@main-window/settings-navigation/NavigableSettingsSection.vue'
 import { useInstance } from '@renderer-shared/shards'

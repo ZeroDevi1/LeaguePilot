@@ -1,5 +1,5 @@
-appId: sugar.cocoa.league-akari
-productName: League Akari
+appId: sugar.cocoa.league-pilot
+productName: LeaguePilot
 directories:
   buildResources: build
 files:
@@ -22,14 +22,15 @@ files:
   - '!native{,/**}'
   - '!**/.venv/**'
   - '!node_modules/electron{,/**}'
+  - '!node_modules/@overwolf{,/**}'
   - '!node_modules/**/*.map'
   - '!node_modules/@electron-internal{,/**}'
   - '!node_modules/@electron/get{,/**}'
   - '!node_modules/better-sqlite3/{deps,src}{,/**}'
   - '!node_modules/better-sqlite3/{binding.gyp,*.gypi}'
   - '!node_modules/better-sqlite3/build/Release/{.forge-meta,obj}{,/**}'
-  - '!node_modules/league-akari-native-win32/{build,lib,scripts,node_modules}{,/**}'
-  - '!node_modules/league-akari-native-win32/{binding.gyp,tsconfig.json,*.tsbuildinfo}'
+  - '!node_modules/league-pilot-native-win32/{build,lib,scripts,node_modules}{,/**}'
+  - '!node_modules/league-pilot-native-win32/{binding.gyp,tsconfig.json,*.tsbuildinfo}'
 
 electronLanguages:
   - zh-CN
@@ -44,7 +45,7 @@ asarUnpack:
 win:
   target:
     - 7z
-  executableName: LeagueAkari
+  executableName: LeaguePilot
   icon: resources/LA_ICON.ico
 
 mac:
@@ -62,4 +63,4 @@ electronFuses:
 npmRebuild: false
 publish:
 #   provider: generic
-#   url: https://league-akari.cocoa.sugar/releases
+#   url: https://github.com/ZeroDevi1/LeaguePilot/releases

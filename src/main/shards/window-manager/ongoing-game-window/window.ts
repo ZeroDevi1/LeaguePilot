@@ -15,7 +15,7 @@ export class AkariOngoingGameWindow extends BaseAkariWindow<
 > {
   static readonly NAMESPACE_SUFFIX = 'ongoing-game-window'
   static readonly HTML_ENTRY = 'ongoing-game-window.html'
-  static readonly TITLE = 'Akari Ongoing Game Inspector'
+  static readonly TITLE = 'LeaguePilot - Ongoing Game'
   static readonly BASE_WIDTH = 1300
   static readonly BASE_HEIGHT = 840
 
