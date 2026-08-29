@@ -46,7 +46,7 @@ win:
   target:
     - 7z
   executableName: LeaguePilot
-  icon: resources/LA_ICON.ico
+  icon: resources/LP_ICON.ico
 
 mac:
   target:

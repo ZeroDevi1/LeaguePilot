@@ -27,8 +27,6 @@
       {{ t('opgg.resg.loadFailed', { reason: resgError }) }}
     </NAlert>
 
-    <ArammetaChampionAugments class="lg:col-span-2" />
-
     <div v-if="resgGuide" class="grid grid-cols-1 gap-2 lg:grid-cols-2">
       <div v-if="resgGuide.spells.length" class="guide-card">
         <div class="guide-title">{{ t('opgg.champion.spells') }}</div>
@@ -101,12 +99,7 @@
 
       <div v-if="resgGuide.augments.length" class="guide-card">
         <div class="guide-title">{{ t('opgg.resg.recommendedAugments') }}</div>
-        <div
-          v-for="augment in visibleAugments"
-          :key="augment.id"
-          class="guide-row"
-          :class="{ 'live-offer-row': isLiveOffer(augment.id) }"
-        >
+        <div v-for="augment in visibleAugments" :key="augment.id" class="guide-row">
           <div class="guide-rank">#{{ augment.rank }}</div>
           <AugmentDisplay :size="28" :augment-id="augment.id" />
           <span class="truncate text-xs">{{ augment.name }}</span>
@@ -151,7 +144,7 @@
         </NButton>
       </div>
 
-      <div v-if="augmentComboSizes.length" class="guide-card lg:col-span-2">
+      <div v-if="showAugmentComboCard" class="guide-card lg:col-span-2">
         <div class="guide-heading">
           <div class="guide-title mb-0">{{ t('opgg.resg.augmentCombos') }}</div>
           <NSelect
@@ -162,12 +155,7 @@
             :options="augmentComboOptions"
           />
         </div>
-        <div
-          v-for="combo in visibleAugmentCombos"
-          :key="comboKey(combo)"
-          class="combo-row"
-          :class="{ 'live-offer-row': combo.augmentIds.some((id) => isLiveOffer(id)) }"
-        >
+        <div v-for="combo in visibleAugmentCombos" :key="comboKey(combo)" class="combo-row">
           <NButton
             v-if="combo.builds.length"
             size="tiny"
@@ -286,10 +274,8 @@ import { NAlert, NButton, NSelect, NTag } from 'naive-ui'
 import { computed, defineComponent, h, type PropType, ref, watch } from 'vue'
 
 import { useOpgg } from '../context'
-import { pinLiveItems, useLiveAugmentOffer } from '../utils/live-augment-offer'
 import { useLoadout } from '../utils/loadout'
 import { createResgItemSet } from '../utils/resg-item-set'
-import ArammetaChampionAugments from './ArammetaChampionAugments.vue'
 
 const DEFAULT_COMBO_LIMIT = 6
 const DEFAULT_STAT_LIMIT = 10
@@ -340,7 +326,6 @@ const { resgGuide, resgError, flashPosition, position, region, tier } = useOpgg(
 const { setSummonerSpells, writeItemSet } = useLoadout()
 const { t } = useTranslation()
 const leagueClientStore = useLeagueClientStore()
-const { isLiveOffer } = useLiveAugmentOffer()
 
 const augmentComboSizes = computed(() =>
   [...new Set(resgGuide.value?.augmentCombos.map((combo) => combo.size) ?? [])].toSorted()
@@ -370,38 +355,27 @@ const itemComboOptions = computed(() =>
 )
 const visibleAugments = computed(() => {
   const all = resgGuide.value?.augments ?? []
-  const pinned = pinLiveItems(all, (augment) => isLiveOffer(augment.id))
-  if (showAllAugments.value) {
-    return pinned
-  }
-
-  const live = pinned.filter((augment) => isLiveOffer(augment.id))
-  const rest = pinned.filter((augment) => !isLiveOffer(augment.id))
-  return [...live, ...rest.slice(0, Math.max(0, DEFAULT_STAT_LIMIT - live.length))]
+  return showAllAugments.value ? all : all.slice(0, DEFAULT_STAT_LIMIT)
 })
 const visibleItems = computed(() =>
   showAllItems.value
     ? (resgGuide.value?.items ?? [])
     : (resgGuide.value?.items ?? []).slice(0, DEFAULT_STAT_LIMIT)
 )
-const selectedAugmentCombos = computed(() =>
-  (resgGuide.value?.augmentCombos ?? []).filter((combo) => combo.size === augmentComboSize.value)
-)
 const selectedItemCombos = computed(() =>
   (resgGuide.value?.itemCombos ?? []).filter((combo) => combo.size === itemComboSize.value)
 )
-const visibleAugmentCombos = computed(() => {
-  const pinned = pinLiveItems(selectedAugmentCombos.value, (combo) =>
-    combo.augmentIds.some((id) => isLiveOffer(id))
-  )
-  if (showAllAugmentCombos.value) {
-    return pinned
-  }
-
-  const live = pinned.filter((combo) => combo.augmentIds.some((id) => isLiveOffer(id)))
-  const rest = pinned.filter((combo) => !combo.augmentIds.some((id) => isLiveOffer(id)))
-  return [...live, ...rest.slice(0, Math.max(0, DEFAULT_COMBO_LIMIT - live.length))]
-})
+const selectedAugmentCombos = computed(() =>
+  (resgGuide.value?.augmentCombos ?? []).filter((combo) => combo.size === augmentComboSize.value)
+)
+const visibleAugmentCombos = computed(() =>
+  showAllAugmentCombos.value
+    ? selectedAugmentCombos.value
+    : selectedAugmentCombos.value.slice(0, DEFAULT_COMBO_LIMIT)
+)
+const showAugmentComboCard = computed(
+  () => visibleAugmentCombos.value.length > 0 || augmentComboSizes.value.length > 0
+)
 const visibleItemCombos = computed(() =>
   showAllItemCombos.value
     ? selectedItemCombos.value
@@ -494,10 +468,6 @@ function applyItemSet() {
 
 .guide-row {
   @apply mb-1 flex min-h-8 items-center gap-1 last:mb-0;
-}
-
-.live-offer-row {
-  @apply bg-akari-500/7 ring-akari-500/35 dark:bg-akari-400/10 dark:ring-akari-400/30 rounded ring-1;
 }
 
 .combo-row {

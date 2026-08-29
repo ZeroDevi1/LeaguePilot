@@ -116,24 +116,6 @@ opgg:
     runesSet: '[$t(common:appName)] {{action}} rune build: {{name}}'
     sessionChampions:
       title: Session Champions
-  liveAugmentOffer:
-    badge: LIVE
-    title: Current Hextech Augments
-    slot: Option {{index}}
-    picked: Picked
-    unmapped: Not mapped to a local ID
-    status:
-      ready: Synced
-      waiting: Waiting for offers
-      degraded: Partially mapped
-      unavailable: Unavailable
-      error: Read failed
-      unsupported: Unsupported in this build
-    errorHint: Live Hextech augment data failed to parse. Unknown names are not guessed, and the game client is not changed.
-    degradedHint: The current three options are shown, but at least one name could not be mapped to a local augment ID.
-    waitingHint: When you reach levels 3 / 7 / 11 / 15 the app tries to read the current three-choice offer. Use borderless or windowed mode; scan manually if detection misses.
-    scan: Scan current offer
-    scanFailed: No three-choice offer was recognized. Make sure the augment picker is visible.
   arammeta:
     title: Historical Hextech
     source: arammeta historical stats

@@ -232,8 +232,8 @@
         <!-- augments (5) -->
         <div v-else-if="column.name === 'augments' && participant.augments" :class="column.class">
           <AugmentDisplay
-            v-for="aug in participant.augments.slice(0, someoneHas6Augments ? 6 : 5)"
-            :key="aug"
+            v-for="(aug, index) in filledAugmentIds(participant.augments)"
+            :key="`${participant.puuid}-${index}-${aug}`"
             :augment-id="aug"
             :size="20"
           />
@@ -319,6 +319,7 @@ import Inhibitor from '../icons/Inhibitor.vue'
 import RiftHerald from '../icons/RiftHerald.vue'
 import Tower from '../icons/Tower.vue'
 import VoidGrub from '../icons/VoidGrub.vue'
+import { filledAugmentIds } from '../utils/augments'
 import { useGameResultName, usePosition, useTeamName } from '../utils/text'
 import DamageBarWithPopover from './DamageBarWithPopover.vue'
 import RadarChart from './RadarChart.vue'
@@ -330,11 +331,6 @@ interface ColumnConfig {
 
 const hasRoleBoundItems = computed(() => {
   return teamParticipants.value.some((p) => p.roleBoundItem)
-})
-
-const someoneHas6Augments = computed(() => {
-  // 0 或 undefined 都算没有
-  return teamParticipants.value.some((p) => p.augments[5])
 })
 
 const extraColumns = computed<ColumnConfig[]>(() => {

@@ -3,10 +3,12 @@ import { i18next } from '@renderer-shared/i18n'
 import { useAppCommonStore } from '@renderer-shared/shards/app-common/store'
 import { useExtraAssetsStore } from '@renderer-shared/shards/extra-assets/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
+import { resolveGtimgAssetUrl } from '@shared/data-sources/gtimg'
 
 import type {
   AkariResourceProviderValue,
   AugmentDisplayResource,
+  AugmentRarity,
   ItemInlineResource,
   MapNameContext
 } from './types'
@@ -244,21 +246,48 @@ export function createAkariResourceProvider(): AkariResourceProviderValue {
 
     augments: {
       name(id: number) {
-        return leagueClient.gameData.augments[id]?.nameTRA || id.toString()
+        const lcuName = leagueClient.gameData.augments[id]?.nameTRA
+        if (lcuName) {
+          return lcuName
+        }
+
+        const kiwi = extra.kiwiAugmentsMap?.[id]
+        if (kiwi) {
+          return app.settings.locale === 'zh-CN'
+            ? kiwi.name_cn || kiwi.name_en
+            : kiwi.name_en || kiwi.name_cn
+        }
+
+        return id.toString()
       },
       display(id: number): AugmentDisplayResource | null {
         const augment = leagueClient.gameData.augments[id]
 
-        if (!augment?.nameTRA || !augment.augmentSmallIconPath || !augment.rarity) {
+        if (augment?.nameTRA && augment.augmentSmallIconPath && augment.rarity) {
+          return {
+            id,
+            name: augment.nameTRA,
+            iconPath: augment.augmentSmallIconPath,
+            rarity: augment.rarity,
+            tooltipHtml: augmentTooltipHtml(id)
+          }
+        }
+
+        const kiwi = extra.kiwiAugmentsMap?.[id]
+        const iconPath = kiwi ? resolveGtimgAssetUrl(kiwi.small_Icon || kiwi.large_Icon) : null
+        if (!kiwi || !iconPath) {
           return null
         }
 
         return {
           id,
-          name: augment.nameTRA,
-          iconPath: augment.augmentSmallIconPath,
-          rarity: augment.rarity,
-          tooltipHtml: augmentTooltipHtml(id)
+          name:
+            app.settings.locale === 'zh-CN'
+              ? kiwi.name_cn || kiwi.name_en
+              : kiwi.name_en || kiwi.name_cn,
+          iconPath,
+          rarity: kiwi.level as AugmentRarity,
+          tooltipHtml: kiwi.tooltip || undefined
         }
       }
     }

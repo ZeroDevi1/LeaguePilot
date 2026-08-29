@@ -1,4 +1,4 @@
-import { GtimgHeroListJs, GtimgKiwiAugments, Hero } from '@shared/data-sources/gtimg'
+import type { GtimgHeroListJs, GtimgKiwiAugments, Hero } from '@shared/data-sources/gtimg'
 import type { ArammetaHexCatalog } from '@shared/types/arammeta'
 import type { OpggAramBalanceItem } from '@shared/types/opgg'
 import { defineStore } from 'pinia'

@@ -1,4 +1,4 @@
-import icon from '@resources/LA_ICON.ico?asset&asarUnpack'
+import icon from '@resources/LP_ICON.ico?asset&asarUnpack'
 import { Event } from 'electron'
 import { compareShallow } from 'mobx'
 import { z } from 'zod'

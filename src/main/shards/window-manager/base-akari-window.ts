@@ -473,17 +473,6 @@ export abstract class BaseAkariWindow<
       runInAction(() => (this.state.show = true))
     })
 
-    this._window.on('hide', () => {
-      this._logger.info(`BrowserWindow hide (${this._namespace})`)
-      runInAction(() => (this.state.show = false))
-    })
-
-    this._window.on('closed', () => {
-      this._logger.info(`BrowserWindow closed (${this._namespace})`)
-      runInAction(() => (this.state.ready = false))
-      this._window = null
-    })
-
     const saveBounds = () => {
       if (!this._window) {
         return
@@ -499,13 +488,35 @@ export abstract class BaseAkariWindow<
       }
     }
 
-    this._window.on('move', () => {
+    this._window.on('hide', () => {
       saveBounds()
+      this._logger.info(`BrowserWindow hide (${this._namespace})`)
+      runInAction(() => (this.state.show = false))
     })
 
-    this._window.on('resize', () => {
-      saveBounds()
+    this._window.on('closed', () => {
+      this._logger.info(`BrowserWindow closed (${this._namespace})`)
+      runInAction(() => (this.state.ready = false))
+      this._window = null
     })
+
+    this._window.on('moved', saveBounds)
+    this._window.on('resized', saveBounds)
+
+    if (process.platform === 'linux') {
+      let persistTimer: ReturnType<typeof setTimeout> | null = null
+      const persistSoon = () => {
+        if (persistTimer) {
+          clearTimeout(persistTimer)
+        }
+        persistTimer = setTimeout(() => {
+          persistTimer = null
+          saveBounds()
+        }, 200)
+      }
+      this._window.on('move', persistSoon)
+      this._window.on('resize', persistSoon)
+    }
 
     this._window.on('page-title-updated', (e) => e.preventDefault())
 

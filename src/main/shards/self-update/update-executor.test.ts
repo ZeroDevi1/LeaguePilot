@@ -31,7 +31,7 @@ vi.mock('@main/i18n', () => ({
   }
 }))
 
-vi.mock('@resources/LA_ICON.ico?asset', () => ({ default: 'icon' }))
+vi.mock('@resources/LP_ICON.ico?asset', () => ({ default: 'icon' }))
 vi.mock('@resources/akari-updater.exe?asset', () => ({ default: 'akari-updater.exe' }))
 vi.mock('node:child_process', () => ({
   default: {

@@ -4,12 +4,9 @@ import { app } from 'electron'
 import { join } from 'node:path'
 
 import { bootstrap } from './bootstrap'
-import { disableOverwolfAnonymousAnalytics } from './shards/augment-offer/overwolf-runtime'
 
 // 品牌重命名后继续复用原应用数据目录，避免升级时丢失数据库、设置和自动更新状态。
 app.setPath('userData', join(app.getPath('appData'), 'league-akari'))
-
-disableOverwolfAnonymousAnalytics(app)
 
 if (process.platform === 'win32') {
   app.setAppUserModelId('sugar.cocoa.league-pilot')

@@ -1,7 +1,7 @@
 import { is } from '@electron-toolkit/utils'
 import { NATIVE_SUPPORT } from '@main/native'
 import { GameClientMain } from '@main/shards/game-client'
-import icon from '@resources/LA_ICON.ico?asset&asarUnpack'
+import icon from '@resources/LP_ICON.ico?asset&asarUnpack'
 import { compareShallow } from 'mobx'
 import { z } from 'zod'
 

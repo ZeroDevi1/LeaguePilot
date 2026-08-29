@@ -1,5 +1,5 @@
 import { i18next } from '@main/i18n'
-import icon from '@resources/LA_ICON.ico?asset'
+import icon from '@resources/LP_ICON.ico?asset'
 import updateExecutablePath from '@resources/akari-updater.exe?asset'
 import type { SelfUpdateReleaseInfo } from '@shared/shards/self-update'
 import { formatError } from '@shared/utils/errors'

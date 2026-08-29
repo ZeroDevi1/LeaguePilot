@@ -96,7 +96,6 @@
         <OpggChampionBalance />
         <OpggChampionCounters />
         <OpggChampionKiwiAugments />
-        <ArammetaChampionAugments class="lg:col-span-2" />
         <OpggChampionSpells />
         <OpggChampionRunes />
         <OpggChampionSynergies />
@@ -130,7 +129,6 @@ import { computed } from 'vue'
 
 import { useOpgg } from './context'
 import { getTierRingColorClass, getTierTextColorClass } from './utils/theme'
-import ArammetaChampionAugments from './widgets/ArammetaChampionAugments.vue'
 import OpggChampionAugments from './widgets/OpggChampionAugments.vue'
 import OpggChampionBalance from './widgets/OpggChampionBalance.vue'
 import OpggChampionBoots from './widgets/OpggChampionBoots.vue'

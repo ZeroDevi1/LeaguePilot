@@ -1,7 +1,5 @@
 import axios from 'axios'
-import { AxiosRetry } from 'axios-retry'
-
-const axiosRetry = require('axios-retry').default as AxiosRetry
+import axiosRetry from 'axios-retry'
 
 export interface GtimgHeroListJs {
   hero: Hero[]
@@ -49,6 +47,26 @@ export enum Level {
   KGold = 'kGold',
   KPrismatic = 'kPrismatic',
   KSilver = 'kSilver'
+}
+
+/**
+ * 把 gtimg 相对/协议相对图标路径收成可请求的绝对 URL。
+ */
+export function resolveGtimgAssetUrl(icon: string): string | null {
+  const trimmed = icon.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+
+  if (trimmed.startsWith('//')) {
+    return `https:${trimmed}`
+  }
+
+  return `https://game.gtimg.cn/${trimmed.replace(/^\//, '')}`
 }
 
 export class GtimgApi {

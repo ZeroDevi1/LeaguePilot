@@ -39,7 +39,7 @@ vi.mock('@main/shards/game-client', () => ({
   }
 }))
 
-vi.mock('@resources/LA_ICON.ico?asset&asarUnpack', () => ({
+vi.mock('@resources/LP_ICON.ico?asset&asarUnpack', () => ({
   default: 'akari-icon.ico'
 }))
 

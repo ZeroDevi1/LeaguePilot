@@ -1,4 +1,4 @@
-import icon from '@resources/LA_ICON.ico?asset'
+import icon from '@resources/LP_ICON.ico?asset'
 import macosTrayIcon from '@resources/iconTemplate.png?asset'
 import { Menu, MenuItem, Tray, app, nativeImage } from 'electron'
 import i18next from 'i18next'

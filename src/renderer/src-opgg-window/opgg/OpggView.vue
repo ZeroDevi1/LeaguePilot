@@ -1,7 +1,6 @@
 <template>
   <div class="relative flex flex-col px-2 pt-1 pb-2">
     <OpggTabAndFilters class="mb-1" />
-    <LiveAugmentOffer class="mb-1" />
 
     <KeepAlive>
       <ResgChampionTable
@@ -27,7 +26,6 @@ import OpggTabAndFilters from './OpggTabAndFilters.vue'
 import ResgChampion from './ResgChampion.vue'
 import ResgChampionTable from './ResgChampionTable.vue'
 import { useOpgg } from './context'
-import LiveAugmentOffer from './widgets/LiveAugmentOffer.vue'
 import SessionChampions from './widgets/SessionChampions.vue'
 
 const { currentTab, provider } = useOpgg()

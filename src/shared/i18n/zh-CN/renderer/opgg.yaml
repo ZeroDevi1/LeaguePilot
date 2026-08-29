@@ -116,24 +116,6 @@ opgg:
     runesSet: '[$t(common:appName)] 已{{action}}符文配法: {{name}}'
     sessionChampions:
       title: 本局英雄
-  liveAugmentOffer:
-    badge: 实时
-    title: 本轮海克斯
-    slot: 选项 {{index}}
-    picked: 已选择
-    unmapped: 未匹配到本地数据
-    status:
-      ready: 已同步
-      waiting: 等待选项
-      degraded: 部分未匹配
-      unavailable: 暂不可用
-      error: 读取失败
-      unsupported: 当前构建不支持
-    errorHint: 实时海克斯读取失败。不会猜测未知名称，也不会改动游戏客户端。
-    degradedHint: 已显示当前三个选项，但其中有名称未能映射到本地海克斯 ID。
-    waitingHint: 到达 3 / 7 / 11 / 15 级时会尝试识别当前三选一。请使用无边框或窗口模式；识别不到时可手动扫描。
-    scan: 扫描当前三选一
-    scanFailed: 没有识别到三选一，请确认选海克斯界面可见。
   arammeta:
     title: 历史海克斯
     source: arammeta 历史统计

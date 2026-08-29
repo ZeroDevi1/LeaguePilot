@@ -68,10 +68,13 @@
             </div>
 
             <!-- augments -->
-            <div v-if="displayParts.augments" class="hidden grid-cols-3 gap-0.5 @[680px]:grid">
+            <div
+              v-if="displayParts.augments && filledAugmentIds(participant.augments).length"
+              class="flex gap-0.5"
+            >
               <AugmentDisplay
-                v-for="augment of participant.augments"
-                :key="augment"
+                v-for="(augment, index) of filledAugmentIds(participant.augments)"
+                :key="`${index}-${augment}`"
                 :augment-id="augment"
                 :size="20"
               />
@@ -289,6 +292,14 @@
               <div class="flex items-center gap-1 text-xs" v-else>
                 <span class="font-bold">{{ resources.champions.name(player.championId) }}</span>
               </div>
+              <div v-if="filledAugmentIds(player.augments).length" class="mt-1 flex gap-0.5">
+                <AugmentDisplay
+                  v-for="(augment, index) of filledAugmentIds(player.augments)"
+                  :key="`${player.puuid}-${index}-${augment}`"
+                  :augment-id="augment"
+                  :size="16"
+                />
+              </div>
             </NTooltip>
           </div>
 
@@ -352,6 +363,14 @@
               <div class="flex items-center gap-1 text-xs" v-else>
                 <span class="font-bold">{{ resources.champions.name(player.championId) }}</span>
               </div>
+              <div v-if="filledAugmentIds(player.augments).length" class="mt-1 flex gap-0.5">
+                <AugmentDisplay
+                  v-for="(augment, index) of filledAugmentIds(player.augments)"
+                  :key="`${player.puuid}-${index}-${augment}`"
+                  :augment-id="augment"
+                  :size="16"
+                />
+              </div>
             </NTooltip>
           </div>
         </div>
@@ -402,6 +421,14 @@
             </div>
             <div class="flex items-center gap-1 text-xs" v-else>
               <span class="font-bold">{{ resources.champions.name(player.championId) }}</span>
+            </div>
+            <div v-if="filledAugmentIds(player.augments).length" class="mt-1 flex gap-0.5">
+              <AugmentDisplay
+                v-for="(augment, index) of filledAugmentIds(player.augments)"
+                :key="`${player.puuid}-${index}-${augment}`"
+                :augment-id="augment"
+                :size="16"
+              />
             </div>
           </NTooltip>
         </div>
@@ -455,6 +482,7 @@ import PerkstyleDisplay from '../widgets/PerkstyleDisplay.vue'
 import SummonerSpellDisplay from '../widgets/SummonerSpellDisplay.vue'
 import { MATCH_CARD_COLLAPSED_HEIGHT_PX } from './constants'
 import { useMatchCard } from './context'
+import { filledAugmentIds } from './utils/augments'
 import { useGameResultName } from './utils/text'
 import { useCardBorderClass, useWinResultStyleType } from './utils/theme'
 import { formatSeconds } from './utils/time'
