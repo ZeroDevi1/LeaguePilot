@@ -9,7 +9,7 @@ const RESG_PROTOCOL_DOMAIN = 'resg'
 /**
  * 为 renderer 提供受限的 RESG 只读代理。
  *
- * RESG 公共 API 不返回 CORS 头，因此由 main 进程固定代理版本索引、英雄列表和单英雄详情；该 shard 不接受任意主机或任意路径。
+ * main 进程从 B 站入口解析 RESG 发布目录，固定代理版本索引、英雄列表和单英雄详情，避免 renderer 跨域请求；不接受任意主机或任意路径。
  */
 @Shard(ResgMain.id)
 export class ResgMain {

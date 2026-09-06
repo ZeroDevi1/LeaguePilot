@@ -1,7 +1,8 @@
 import { isResgHtmlDocument, parseResgEsmModule } from '@shared/data-adapter/resg/esm-module'
 
-/** RESG 代理允许访问的固定上游根地址。 */
-const RESG_API_BASE_URL = 'https://www.resg.top'
+/** RESG 稳定入口；发布目录由其中的 iframe 声明。 */
+const RESG_ENTRY_URL = 'https://www.bilibili.com/toy/resg/index.html'
+const RELEASE_CACHE_TTL_MS = 15 * 60 * 1000
 /** RESG 版本索引路径。 */
 const VERSION_INDEX_PATH = '/api/v1/versions.js'
 /** RESG 英雄列表路径。 */
@@ -12,16 +13,68 @@ const CHAMPION_DETAIL_PATH = /^\/api\/v1\/versions\/\d+(?:\.\d+)*\/champions\/[1
 /** 可注入的 fetch 子集，仅用于协议边界测试。 */
 type Fetcher = (input: URL, init: RequestInit) => Promise<Response>
 
+/** 按传输实例隔离缓存；不共享取消信号或正在执行的请求。 */
+const releaseCache = new WeakMap<Fetcher, { baseUrl: URL; expiresAt: number }>()
+
+/**
+ * 从固定入口解析受限发布目录，不执行 HTML 或脚本。
+ * 仅缓存成功结果；网络与取消错误透传，入口失效或结构不符返回 null。
+ */
+async function resolveReleaseUrl(fetcher: Fetcher, signal?: AbortSignal): Promise<URL | null> {
+  const cached = releaseCache.get(fetcher)
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.baseUrl
+  }
+
+  const response = await fetcher(new URL(RESG_ENTRY_URL), {
+    method: 'GET',
+    headers: { Accept: 'text/html' },
+    redirect: 'manual',
+    signal
+  })
+  if (!response.ok) {
+    await response.body?.cancel()
+    return null
+  }
+
+  const html = await response.text()
+  // 只接受入口实际使用的带引号 iframe src；未知格式明确失败，不猜测资源地址。
+  for (const match of html.matchAll(/<iframe\b[^>]*?\s+src\s*=\s*(["'])(.*?)\1/gi)) {
+    let url: URL
+    try {
+      url = new URL(match[2])
+    } catch {
+      continue
+    }
+    if (
+      url.origin !== 'https://www.bilibilitoy.com' ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      !/^\/toy\/resg\/\d+-v\d+\/index\.html$/.test(url.pathname)
+    ) {
+      continue
+    }
+
+    const baseUrl = new URL('./', url)
+    signal?.throwIfAborted()
+    releaseCache.set(fetcher, { baseUrl, expiresAt: Date.now() + RELEASE_CACHE_TTL_MS })
+    return baseUrl
+  }
+  return null
+}
+
 /**
  * 处理一条受限的 RESG 代理请求。
  *
  * 仅允许三个固定 GET 路径形状，不转发 renderer 请求头或查询参数，也不跟随或暴露上游重定向。
- * 上游提供 ESM JSON 模块；成功响应会被转成 JSON，SPA HTML fallback 会被拒绝。
+ * 从 B 站入口发现并短期缓存发布目录；上游 ESM JSON 模块转成 JSON，SPA HTML fallback 被拒绝。
  *
  * @param request renderer 发起的 `akari://resg` 请求。
  * @param signal main proxy cancellation 提供的取消信号。
  * @param fetcher 上游请求函数；生产环境使用全局 `fetch`，测试可注入替身。
- * @returns JSON 化后的上游数据，或本地生成的 404、405、502 响应。
+ * @returns JSON 化后的上游数据，或本地生成的 404、405、502 响应；网络和取消错误透传。
  */
 export async function handleResgProtocolRequest(
   request: Request,
@@ -33,8 +86,10 @@ export async function handleResgProtocolRequest(
   }
 
   const url = new URL(request.url)
-  const path = `${url.pathname}${url.search}`
+  const path = url.pathname
   if (
+    url.hostname !== 'resg' ||
+    url.protocol !== 'akari:' ||
     url.search ||
     (url.pathname !== VERSION_INDEX_PATH &&
       !CHAMPION_INDEX_PATH.test(url.pathname) &&
@@ -43,7 +98,14 @@ export async function handleResgProtocolRequest(
     return new Response('Not Found', { status: 404 })
   }
 
-  const response = await fetcher(new URL(path, RESG_API_BASE_URL), {
+  signal?.throwIfAborted()
+  const baseUrl = await resolveReleaseUrl(fetcher, signal)
+  if (!baseUrl) {
+    return new Response('Upstream release directory unavailable', { status: 502 })
+  }
+
+  // 去掉协议路径的前导斜杠，避免 URL 构造器丢弃发布目录。
+  const response = await fetcher(new URL(path.slice(1), baseUrl), {
     method: 'GET',
     headers: { Accept: 'application/javascript' },
     redirect: 'manual',
@@ -51,10 +113,17 @@ export async function handleResgProtocolRequest(
   })
 
   if (response.status >= 300 && response.status < 400) {
+    await response.body?.cancel()
     return new Response('Upstream Redirect Rejected', { status: 502 })
   }
 
   if (response.status < 200 || response.status >= 300) {
+    if (
+      (response.status === 404 || response.status === 410) &&
+      releaseCache.get(fetcher)?.baseUrl === baseUrl
+    ) {
+      releaseCache.delete(fetcher)
+    }
     return response
   }
 
