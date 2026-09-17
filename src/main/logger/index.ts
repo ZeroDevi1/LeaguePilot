@@ -59,43 +59,60 @@ const LEVEL_COLORS = {
   error: STYLES.red
 }
 
+/**
+ * 初始化应用日志器。
+ * 打包后不再创建 logs 目录和日志文件，只保留控制台输出。
+ * @param level 日志级别，默认 info
+ * @returns logger 实例、日志目录、文件名和级别读写方法。打包后 logsDir 与 filename 为空字符串。
+ */
 export function initAppLogger(level: string = 'info') {
-  // macOS 下应用通常安装在 /Applications（对普通用户不可写），不能把日志写进 .app bundle 内。
-  // Windows（NSIS per-user）等场景下保留原逻辑：写到可执行文件目录旁的 logs。
-  const logsDir =
-    process.platform === 'darwin'
-      ? app.getPath('logs')
-      : path.join(path.join(app.getPath('exe'), '..'), 'logs')
+  // 是否将日志写入 logs 文件。打包后不再落盘，避免程序目录旁生成 logs。
+  const shouldWriteLogFile = !app.isPackaged
+  // 日志文件目录。打包后不创建，保持空字符串。
+  let logsDir = ''
+  // 本次启动的日志文件名。打包后不创建文件，保持空字符串。
+  let filename = ''
+  // 文件 transport。仅开发态写入 logs 时存在。
+  let fileTransport: transports.FileTransportInstance | undefined
 
-  try {
-    const stats = fs.statSync(logsDir)
+  if (shouldWriteLogFile) {
+    // macOS 下应用通常安装在 /Applications（对普通用户不可写），不能把日志写进 .app bundle 内。
+    // Windows（NSIS per-user）等场景下保留原逻辑：写到可执行文件目录旁的 logs。
+    logsDir =
+      process.platform === 'darwin'
+        ? app.getPath('logs')
+        : path.join(path.join(app.getPath('exe'), '..'), 'logs')
 
-    if (!stats.isDirectory()) {
-      fs.rmSync(logsDir, { recursive: true, force: true })
-      fs.mkdirSync(logsDir)
+    try {
+      const stats = fs.statSync(logsDir)
+
+      if (!stats.isDirectory()) {
+        fs.rmSync(logsDir, { recursive: true, force: true })
+        fs.mkdirSync(logsDir)
+      }
+    } catch (error) {
+      if ((error as any).code === 'ENOENT') {
+        fs.mkdirSync(logsDir)
+      } else {
+        throw error
+      }
     }
-  } catch (error) {
-    if ((error as any).code === 'ENOENT') {
-      fs.mkdirSync(logsDir)
-    } else {
-      throw error
-    }
+
+    filename = `LA_${dayjs().format('YYYYMMDD_HHmmssSSS')}.log`
+
+    fileTransport = new transports.File({
+      filename,
+      dirname: logsDir,
+      level,
+      maxsize: 1024 * 1024 * 128, // 128MB
+      format: format.combine(
+        format.timestamp(),
+        format.printf(({ level, message, namespace, timestamp }) => {
+          return `[${dayjs(timestamp as number).format('YYYY-MM-DD HH:mm:ss:SSS')}] [${namespace}] [${level}] ${message}`
+        })
+      )
+    })
   }
-
-  const filename = `LA_${dayjs().format('YYYYMMDD_HHmmssSSS')}.log`
-
-  const fileTransport = new transports.File({
-    filename,
-    dirname: logsDir,
-    level,
-    maxsize: 1024 * 1024 * 128, // 128MB
-    format: format.combine(
-      format.timestamp(),
-      format.printf(({ level, message, namespace, timestamp }) => {
-        return `[${dayjs(timestamp as number).format('YYYY-MM-DD HH:mm:ss:SSS')}] [${namespace}] [${level}] ${message}`
-      })
-    )
-  })
 
   const consoleTransport = new transports.Console({
     level,
@@ -112,13 +129,19 @@ export function initAppLogger(level: string = 'info') {
     )
   })
 
-  const setLevel = (level: string) => {
-    fileTransport.level = level
-    consoleTransport.level = level
+  /**
+   * 同步调整控制台和（若存在的）文件 transport 的日志级别。
+   * @param nextLevel 目标日志级别
+   */
+  const setLevel = (nextLevel: string) => {
+    if (fileTransport) {
+      fileTransport.level = nextLevel
+    }
+    consoleTransport.level = nextLevel
   }
 
   const logger = createLogger({
-    transports: [fileTransport, consoleTransport]
+    transports: fileTransport ? [fileTransport, consoleTransport] : [consoleTransport]
   })
 
   return {
@@ -126,6 +149,6 @@ export function initAppLogger(level: string = 'info') {
     logsDir,
     filename,
     setLevel,
-    getLevel: () => fileTransport.level || level
+    getLevel: () => fileTransport?.level || consoleTransport.level || level
   }
 }
