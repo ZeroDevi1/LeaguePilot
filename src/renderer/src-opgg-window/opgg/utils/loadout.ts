@@ -14,7 +14,10 @@ import { restoreRecipe } from './recipe-restore'
 export interface GuideItemSetGroup {
   /** 客户端装备页中显示的分组标题。 */
   title: string
-  /** 按展示顺序排列的 Riot 装备 ID。 */
+  /**
+   * 按展示顺序排列的 Riot 装备 ID。
+   * 技能加点等无法写成商店装备的信息可以留空，只保留标题供游戏内对照。
+   */
   items: number[]
 }
 
@@ -28,11 +31,13 @@ export interface GuideItemSet {
   championId: number
   /** 数据版本；来源没有版本时可省略。 */
   version?: string
+  /** 附加到客户端装备页标题末尾的短说明，例如首选技能加点。 */
+  titleNote?: string
   /** 限制该装备页显示的 Riot 英雄 ID；省略时不限制英雄。 */
   associatedChampions?: number[]
   /** 限制该装备页显示的 Riot 地图 ID；省略时不限制地图。 */
   associatedMaps?: number[]
-  /** 要写入客户端的装备分组；空分组不会产生有效装备页。 */
+  /** 要写入客户端的装备分组；没有装备 ID 的分组仍会写入标题，供技能加点等信息展示。 */
   itemGroups: GuideItemSetGroup[]
 }
 
@@ -215,13 +220,24 @@ export function useLoadout() {
     return `${prefix}-${traits.championId}-${traits.mode || '_'}-${traits.region || '_'}-${traits.tier || '_'}-${traits.position || '_'}-${traits.version || '_'}`
   }
 
+  /**
+   * 生成写入客户端的装备页标题。
+   *
+   * @param options.sourceLabel 数据源标签。
+   * @param options.championId Riot 英雄 ID，用于读取本地英雄名。
+   * @param options.mode 当前攻略模式。
+   * @param options.position 当前攻略位置；`none` 时不写入标题。
+   * @param options.titleNote 附加在标题末尾的短说明，例如技能加点。
+   * @returns 客户端装备页显示的完整标题。
+   */
   const getItemSetsTitle = (options: {
     sourceLabel: string
     championId: number
     mode: string
     position: string
+    titleNote?: string
   }) => {
-    const { sourceLabel, championId, mode, position } = options
+    const { sourceLabel, championId, mode, position, titleNote } = options
 
     const championName = lcs.gameData.championName(championId)
     let title = `[${sourceLabel}] ${championName}`
@@ -235,6 +251,10 @@ export function useLoadout() {
     if (hasPosition) {
       const positionName = t(`opgg.filters.positions.${position}`)
       title += ` - ${positionName || position}`
+    }
+
+    if (titleNote) {
+      title += ` - ${titleNote}`
     }
 
     return title
@@ -293,7 +313,8 @@ export function useLoadout() {
             sourceLabel: itemSet.sourceLabel,
             championId: itemSet.championId,
             mode: meta.mode,
-            position: meta.position
+            position: meta.position,
+            titleNote: itemSet.titleNote
           }),
           sortrank: 0,
           type: 'global',

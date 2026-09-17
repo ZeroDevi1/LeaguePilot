@@ -147,8 +147,8 @@ opgg:
     showLess: 收起
     starterGroup: 'RESG 起始装备 #{{index}}'
     bootsGroup: 'RESG 鞋子 #{{index}}'
-    linkedItemGroup: 'RESG 核心出装 #{{index}}'
-    fiveItemGroup: 'RESG 五件装 #{{index}}'
+    skillOrderGroup: 'RESG 技能点法 #{{index}} {{order}}'
+    itemComboGroup: 'RESG {{size}} 件装 #{{index}}'
     buildStats: '{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%'
     buildStatsWithoutPickRate: '{{play}} 场 · 胜率 {{winRate}}%'
   champion:

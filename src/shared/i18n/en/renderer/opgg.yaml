@@ -150,8 +150,8 @@ opgg:
     showLess: Show less
     starterGroup: 'RESG Starting Items #{{index}}'
     bootsGroup: 'RESG Boots #{{index}}'
-    linkedItemGroup: 'RESG Core Build #{{index}}'
-    fiveItemGroup: 'RESG Five-item Build #{{index}}'
+    skillOrderGroup: 'RESG Skill Order #{{index}} {{order}}'
+    itemComboGroup: 'RESG {{size}}-item Build #{{index}}'
     buildStats_one: '{{play}} game · {{winRate}}% win rate · {{pickRate}}% pick rate'
     buildStats_other: '{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate'
     buildStatsWithoutPickRate_one: '{{play}} game · {{winRate}}% win rate'
