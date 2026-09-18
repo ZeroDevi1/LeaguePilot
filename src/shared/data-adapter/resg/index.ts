@@ -1,6 +1,4 @@
 import type {
-  ResgAugmentCombo,
-  ResgAugmentItemBuild,
   ResgChampionGuide,
   ResgChampionIndexItem,
   ResgChampionIndexResponse,
@@ -11,13 +9,22 @@ import type {
   ResgGuideItemCombo,
   ResgGuideItemStat,
   ResgGuideLinkedBuild,
-  ResgItemCombo,
-  ResgItemStat,
   ResgNamedResource,
-  ResgRankedBuild,
-  ResgRecommendedAugment,
   ResgVersionItem
 } from '@shared/types/resg'
+
+/** RESG 当前静态模块把样本数压缩为 `tm`；旧模块使用 `totalMatches`。 */
+const TOTAL_MATCHES_KEYS = ['totalMatches', 'tm'] as const
+/** RESG 当前静态模块把胜场数压缩为 `wm`；旧模块使用 `winMatches`。 */
+const WIN_MATCHES_KEYS = ['winMatches', 'wm'] as const
+/** RESG 当前静态模块把胜率压缩为 `wr`；旧模块使用 `winRate`。 */
+const WIN_RATE_KEYS = ['winRate', 'wr'] as const
+/** RESG 当前静态模块把选取率压缩为 `pr`；旧模块使用 `pickRate`。 */
+const PICK_RATE_KEYS = ['pickRate', 'pr'] as const
+/** 海克斯关联出装仍可能使用 snake_case；当前模块改为 `tm`。 */
+const AUGMENT_BUILD_MATCHES_KEYS = ['total_matches', 'tm'] as const
+/** 海克斯关联出装仍可能使用 snake_case；当前模块改为 `wr`。 */
+const AUGMENT_BUILD_WIN_RATE_KEYS = ['win_rate', 'wr'] as const
 
 /**
  * 校验并整理 RESG 版本索引。
@@ -42,6 +49,9 @@ export function adaptResgVersions(response: unknown): ResgVersionItem[] {
 /**
  * 校验并整理 RESG 英雄列表。
  *
+ * RESG 当前静态模块把统计字段压缩为 `tm` / `wm` / `wr`；旧模块使用全称。
+ * 适配器同时接受两种字段，并输出应用内稳定的全称模型。
+ *
  * @param response 未经信任的 RESG JSON 响应。
  * @returns 至少含一个合法英雄时返回标准列表，否则返回 `null`。
  */
@@ -50,7 +60,10 @@ export function adaptResgChampionIndex(response: unknown): ResgChampionIndexResp
     return null
   }
 
-  const items = response.items.filter(isChampionIndexItem)
+  const items = response.items.flatMap((item) => {
+    const mapped = toChampionIndexItem(item)
+    return mapped ? [mapped] : []
+  })
   return items.length > 0 ? { items } : null
 }
 
@@ -74,6 +87,8 @@ export function selectLatestResgVersion(versions: ResgVersionItem[]): string | n
  * 把 RESG 英雄详情转换为攻略窗口使用的稳定视图模型。
  *
  * 转换会在信任边界校验所有被消费的嵌套字段，去掉传输层图标路径，并把当前版本的海克斯关联出装整理成可展示和写入客户端的装备组。
+ * 当前模块把 `builds` / `startingItems` / `itemAnalysis` / `recommendedAugments` / `augmentCombos`
+ * 压缩为 `b` / `si` / `ia` / `ra` / `ac`，统计字段同步压缩为短名；旧全称响应仍然有效。
  *
  * @param response 未经信任的 RESG 英雄详情 JSON。
  * @param version 该响应对应的 RESG 数据版本。
@@ -83,28 +98,36 @@ export function adaptResgChampionGuide(
   response: unknown,
   version: string
 ): ResgChampionGuide | null {
-  if (!isRecord(response) || !isChampionSummary(response.champion)) {
+  if (!isRecord(response)) {
     return null
   }
 
-  const builds = isRecord(response.builds) ? response.builds : {}
-  const itemAnalysis = isRecord(response.itemAnalysis) ? response.itemAnalysis : {}
-  const augmentNameById = toAugmentNameById(response.recommendedAugments)
-  const augmentCombos = toGuideAugmentCombos(response.augmentCombos, augmentNameById)
+  const champion = toChampionSummary(response.champion)
+  if (!champion) {
+    return null
+  }
+
+  const builds = asRecord(readField(response, ['builds', 'b']))
+  const itemAnalysis = asRecord(readField(response, ['itemAnalysis', 'ia']))
+  const recommendedAugments = readField(response, ['recommendedAugments', 'ra'])
+  const startingItems = readField(response, ['startingItems', 'si'])
+  const augmentGroups = readField(response, ['augmentCombos', 'ac'])
+  const augmentNameById = toAugmentNameById(recommendedAugments)
+  const augmentCombos = toGuideAugmentCombos(augmentGroups, augmentNameById)
   const itemCombos = toGuideItemCombos(itemAnalysis.combos)
 
   return {
     version,
-    champion: response.champion,
+    champion,
     spells: toGuideBuilds(builds.SPELLS),
     skillOrders: toGuideBuilds(builds.SKILL_ORDER),
-    starterItems: toGuideBuilds(response.startingItems),
+    starterItems: toGuideBuilds(startingItems),
     boots: toGuideBuilds(builds.BOOTS),
-    augments: toGuideAugments(response.recommendedAugments),
+    augments: toGuideAugments(recommendedAugments),
     augmentCombos,
     itemCombos,
     items: toGuideItems(itemAnalysis.items),
-    itemBuilds: collectItemBuilds(itemCombos, response.augmentCombos)
+    itemBuilds: collectItemBuilds(itemCombos, augmentGroups)
   }
 }
 
@@ -149,14 +172,48 @@ function toGuideBuilds(rows: unknown): ResgGuideBuild[] {
     return []
   }
 
-  return rows.filter(isRankedBuild).map((row) => ({
-    rank: row.rank,
-    ids: row.value.map((item) => item.id).filter((id) => id > 0),
-    names: row.value.map((item) => item.name),
-    play: row.totalMatches,
-    winRate: row.winRate,
-    pickRate: row.pickRate
-  }))
+  return rows.flatMap((row) => {
+    const build = toGuideBuild(row)
+    return build ? [build] : []
+  })
+}
+
+/**
+ * 把一行排名方案转换成攻略窗口模型。
+ *
+ * @param value 未经信任的排名行，统计字段可为全称或短名。
+ * @returns 合法方案；结构或统计字段非法时返回 `null`。
+ */
+function toGuideBuild(value: unknown): ResgGuideBuild | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const rank = readPositiveInteger(value.rank)
+  if (
+    rank === null ||
+    !Array.isArray(value.value) ||
+    value.value.length === 0 ||
+    !value.value.every(isNamedResource)
+  ) {
+    return null
+  }
+
+  const play = readNonNegativeNumber(value, TOTAL_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  const pickRate = readRate(value, PICK_RATE_KEYS)
+  if (play === null || winRate === null || pickRate === null) {
+    return null
+  }
+
+  return {
+    rank,
+    ids: value.value.map((item) => item.id).filter((id) => id > 0),
+    names: value.value.map((item) => item.name),
+    play,
+    winRate,
+    pickRate
+  }
 }
 
 /** 把独立海克斯统计转换为攻略窗口模型。 */
@@ -166,21 +223,49 @@ function toGuideAugments(augments: unknown): ResgGuideAugment[] {
   }
 
   return augments
-    .filter(isRecommendedAugment)
+    .flatMap((augment) => {
+      const mapped = toGuideAugment(augment)
+      return mapped ? [mapped] : []
+    })
     .toSorted((left, right) => right.pickRate - left.pickRate)
-    .map((augment, index) => ({
-      rank: index + 1,
-      id: augment.id,
-      name: augment.name,
-      play: augment.totalMatches,
-      winRate: augment.winRate,
-      pickRate: augment.pickRate
-    }))
+    .map((augment, index) => ({ ...augment, rank: index + 1 }))
+}
+
+/**
+ * 把一条独立海克斯推荐转换成攻略窗口模型。
+ *
+ * @param value 未经信任的海克斯统计，统计字段可为全称或短名。
+ * @returns 合法推荐；结构或统计字段非法时返回 `null`。
+ */
+function toGuideAugment(value: unknown): Omit<ResgGuideAugment, 'rank'> | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readPositiveInteger(value.id)
+  if (id === null || typeof value.name !== 'string' || !isFiniteNumber(value.quality)) {
+    return null
+  }
+
+  const play = readNonNegativeNumber(value, TOTAL_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  const pickRate = readRate(value, PICK_RATE_KEYS)
+  if (play === null || winRate === null || pickRate === null) {
+    return null
+  }
+
+  return {
+    id,
+    name: value.name,
+    play,
+    winRate,
+    pickRate
+  }
 }
 
 /** 判断海克斯组合是否至少含一个有效强化。 */
-function hasUsableAugments(combo: ResgAugmentComboCandidate): boolean {
-  return (readResourceRefs(combo.augments)?.ids.length ?? 0) > 0
+function hasUsableAugments(combo: ParsedAugmentCombo): boolean {
+  return combo.augments.ids.length > 0
 }
 
 /** 按海克斯数量分组并转换全部合法组合。 */
@@ -203,53 +288,75 @@ function toGuideAugmentCombos(
 
 /** 把海克斯组合及其关联出装转换成只依赖 Riot ID 的视图模型。 */
 function toGuideAugmentCombo(
-  combo: ResgValidAugmentCombo,
+  combo: ParsedAugmentCombo,
   namesById: Map<number, string>
 ): ResgGuideAugmentCombo {
-  const augments = readResourceRefs(combo.augments) ?? { ids: [], names: [] }
   return {
     rank: combo.rank,
     size: combo.size,
-    augmentIds: augments.ids,
-    augmentNames: augments.ids.map((id, index) => namesById.get(id) || augments.names[index] || ''),
+    augmentIds: combo.augments.ids,
+    augmentNames: combo.augments.ids.map(
+      (id, index) => namesById.get(id) || combo.augments.names[index] || ''
+    ),
     play: combo.totalMatches,
     winRate: combo.winRate,
     builds: combo.builds
-      .map(toGuideLinkedBuild)
       .filter((build) => build.ids.length > 0)
       .toSorted((left, right) => right.play - left.play)
-  }
-}
-
-/** 把海克斯组合关联出装转换成稳定视图模型。 */
-function toGuideLinkedBuild(build: ResgAugmentItemBuild): ResgGuideLinkedBuild {
-  const items = readResourceRefs(build.items) ?? { ids: [], names: [] }
-  return {
-    ids: items.ids,
-    names: items.names,
-    play: build.total_matches,
-    winRate: build.win_rate
   }
 }
 
 /** 按装备数量分组并保留全部合法核心装备组合。 */
 function toGuideItemCombos(groups: unknown): ResgGuideItemCombo[] {
   return recordArrayValues(groups)
-    .filter(isItemCombo)
-    .map((combo) => {
-      const items = readResourceRefs(combo.items) ?? { ids: [], names: [] }
-      return {
-        rank: combo.rank,
-        size: combo.size,
-        ids: items.ids,
-        names: items.names,
-        play: combo.totalMatches,
-        winRate: combo.winRate,
-        pickRate: combo.pickRate
-      }
+    .flatMap((combo) => {
+      const mapped = toGuideItemCombo(combo)
+      return mapped ? [mapped] : []
     })
     .filter((combo) => combo.ids.length > 0)
     .toSorted((left, right) => left.size - right.size || left.rank - right.rank)
+}
+
+/**
+ * 把一条独立装备组合转换成攻略窗口模型。
+ *
+ * @param value 未经信任的装备组合，统计字段可为全称或短名。
+ * @returns 合法组合；结构或统计字段非法时返回 `null`。
+ */
+function toGuideItemCombo(value: unknown): ResgGuideItemCombo | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const rank = readPositiveInteger(value.rank)
+  const size = readIntegerInRange(value.size, 1, 5)
+  if (rank === null || size === null || readInteger(value.id) === null) {
+    return null
+  }
+
+  const items = readResourceRefs(value.items)
+  const play = readNonNegativeNumber(value, TOTAL_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  const pickRate = readRate(value, PICK_RATE_KEYS)
+  if (
+    !items ||
+    items.ids.length !== size ||
+    play === null ||
+    winRate === null ||
+    pickRate === null
+  ) {
+    return null
+  }
+
+  return {
+    rank,
+    size,
+    ids: items.ids,
+    names: items.names,
+    play,
+    winRate,
+    pickRate
+  }
 }
 
 /** 把单件装备统计转换成稳定视图模型。 */
@@ -260,28 +367,49 @@ function toGuideItems(rows: unknown): ResgGuideItemStat[] {
 
   return rows
     .flatMap((row) => {
-      if (!isItemStat(row)) {
-        return []
-      }
-
-      const id = toPositiveId(row.item)
-      if (id === null) {
-        return []
-      }
-
-      return [
-        {
-          rank: row.rank,
-          id,
-          name: resourceName(row.item),
-          play: row.totalMatches,
-          win: row.winMatches,
-          winRate: row.winRate,
-          pickRate: row.pickRate
-        }
-      ]
+      const mapped = toGuideItem(row)
+      return mapped ? [mapped] : []
     })
     .toSorted((left, right) => left.rank - right.rank)
+}
+
+/**
+ * 把一条单件装备统计转换成攻略窗口模型。
+ *
+ * @param value 未经信任的装备统计，统计字段可为全称或短名。
+ * @returns 合法统计；结构或统计字段非法时返回 `null`。
+ */
+function toGuideItem(value: unknown): ResgGuideItemStat | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const rank = readPositiveInteger(value.rank)
+  const id = toPositiveId(value.item)
+  const play = readNonNegativeNumber(value, TOTAL_MATCHES_KEYS)
+  const win = readNonNegativeNumber(value, WIN_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  const pickRate = readRate(value, PICK_RATE_KEYS)
+  if (
+    rank === null ||
+    id === null ||
+    play === null ||
+    win === null ||
+    winRate === null ||
+    pickRate === null
+  ) {
+    return null
+  }
+
+  return {
+    rank,
+    id,
+    name: resourceName(value.item),
+    play,
+    win,
+    winRate,
+    pickRate
+  }
 }
 
 /** 从独立装备分析中选取各阶段首选组合，旧响应则回退到海克斯关联出装。 */
@@ -318,20 +446,19 @@ function collectItemBuilds(
 
   for (const combo of collectValidAugmentCombos(augmentGroups)) {
     for (const build of combo.builds) {
-      const items = readResourceRefs(build.items)
-      if (!items || items.ids.length === 0) {
+      if (build.ids.length === 0) {
         continue
       }
 
-      const key = items.ids.join('-')
+      const key = build.ids.join('-')
       const previous = uniqueBuilds.get(key)
-      if (!previous || build.total_matches > previous.play) {
+      if (!previous || build.play > previous.play) {
         uniqueBuilds.set(key, {
           rank: 0,
-          ids: items.ids,
-          names: items.names,
-          play: build.total_matches,
-          winRate: build.win_rate,
+          ids: build.ids,
+          names: build.names,
+          play: build.play,
+          winRate: build.winRate,
           pickRate: null
         })
       }
@@ -357,9 +484,110 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/**
+ * 把未知值整理成对象；其它类型视为空对象。
+ *
+ * @param value 未经信任的值。
+ * @returns 普通对象，或空对象。
+ */
+function asRecord(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {}
+}
+
+/**
+ * 读取对象上第一个已定义的候选字段。
+ *
+ * @param record 未经信任的对象。
+ * @param keys 按优先级排列的字段名，全称在前、RESG 短名在后。
+ * @returns 第一个不是 `undefined` 的字段值；都不存在时返回 `undefined`。
+ */
+function readField(record: Record<string, unknown>, keys: readonly string[]): unknown {
+  for (const key of keys) {
+    if (record[key] !== undefined) {
+      return record[key]
+    }
+  }
+  return undefined
+}
+
+/**
+ * 读取对象上第一个有限数字字段。
+ *
+ * @param record 未经信任的对象。
+ * @param keys 按优先级排列的字段名。
+ * @returns 有限数字；都不合法时返回 `null`。
+ */
+function readFiniteNumber(record: Record<string, unknown>, keys: readonly string[]): number | null {
+  const value = readField(record, keys)
+  return isFiniteNumber(value) ? value : null
+}
+
+/**
+ * 读取对象上第一个非负有限数字字段。
+ *
+ * @param record 未经信任的对象。
+ * @param keys 按优先级排列的字段名。
+ * @returns 非负有限数字；都不合法时返回 `null`。
+ */
+function readNonNegativeNumber(
+  record: Record<string, unknown>,
+  keys: readonly string[]
+): number | null {
+  const value = readFiniteNumber(record, keys)
+  return value !== null && value >= 0 ? value : null
+}
+
+/**
+ * 读取对象上第一个 0 到 1 的比率字段。
+ *
+ * @param record 未经信任的对象。
+ * @param keys 按优先级排列的字段名。
+ * @returns 合法比率；都不合法时返回 `null`。
+ */
+function readRate(record: Record<string, unknown>, keys: readonly string[]): number | null {
+  const value = readFiniteNumber(record, keys)
+  return value !== null && isRate(value) ? value : null
+}
+
 /** 判断值是否为有限数字。 */
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value)
+}
+
+/**
+ * 读取一个整数。
+ *
+ * @param value 未经信任的值。
+ * @returns 整数；否则返回 `null`。
+ */
+function readInteger(value: unknown): number | null {
+  return typeof value === 'number' && Number.isInteger(value) ? value : null
+}
+
+/**
+ * 读取一个正整数。
+ *
+ * @param value 未经信任的值。
+ * @returns 大于 0 的整数；否则返回 `null`。
+ */
+function readPositiveInteger(value: unknown): number | null {
+  const valueAsInteger = readInteger(value)
+  return valueAsInteger !== null && valueAsInteger > 0 ? valueAsInteger : null
+}
+
+/**
+ * 读取一个闭区间内的整数。
+ *
+ * @param value 未经信任的值。
+ * @param min 允许的最小整数，含边界。
+ * @param max 允许的最大整数，含边界。
+ * @returns 落在区间内的整数；否则返回 `null`。
+ */
+function readIntegerInRange(value: unknown, min: number, max: number): number | null {
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) {
+    return null
+  }
+  return value
 }
 
 /** 判断值是否为 0 到 1 的比率。 */
@@ -418,46 +646,78 @@ function toAugmentNameById(augments: unknown): Map<number, string> {
   }
 
   for (const augment of augments) {
-    if (isRecommendedAugment(augment)) {
-      names.set(augment.id, augment.name)
+    const mapped = toGuideAugment(augment)
+    if (mapped) {
+      names.set(mapped.id, mapped.name)
     }
   }
 
   return names
 }
 
-/** 校验英雄列表行。 */
-function isChampionIndexItem(value: unknown): value is ResgChampionIndexItem {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    (value.id as number) > 0 &&
-    typeof value.name === 'string' &&
-    typeof value.title === 'string' &&
-    typeof value.alias === 'string' &&
-    Array.isArray(value.roles) &&
-    value.roles.every((role) => typeof role === 'string') &&
-    isFiniteNumber(value.totalMatches) &&
-    isFiniteNumber(value.winMatches) &&
-    isRate(value.winRate) &&
-    typeof value.tier === 'string'
-  )
+/**
+ * 把英雄列表行整理成应用内稳定模型。
+ *
+ * @param value 未经信任的英雄列表项，统计字段可为全称或短名。
+ * @returns 合法英雄项；结构或统计字段非法时返回 `null`。
+ */
+function toChampionIndexItem(value: unknown): ResgChampionIndexItem | null {
+  const summary = toChampionSummary(value)
+  if (!summary || !isRecord(value)) {
+    return null
+  }
+
+  const winMatches = readFiniteNumber(value, WIN_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  if (winMatches === null || winRate === null) {
+    return null
+  }
+
+  return {
+    ...summary,
+    winMatches,
+    winRate
+  }
 }
 
-/** 校验单英雄基础信息。 */
-function isChampionSummary(value: unknown): value is ResgChampionSummary {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    (value.id as number) > 0 &&
-    typeof value.name === 'string' &&
-    typeof value.title === 'string' &&
-    typeof value.alias === 'string' &&
-    Array.isArray(value.roles) &&
-    value.roles.every((role) => typeof role === 'string') &&
-    isFiniteNumber(value.totalMatches) &&
-    typeof value.tier === 'string'
-  )
+/**
+ * 把英雄基础信息整理成应用内稳定模型。
+ *
+ * @param value 未经信任的英雄对象，样本数字段可为 `totalMatches` 或 `tm`。
+ * @returns 合法英雄基础信息；结构非法时返回 `null`。
+ */
+function toChampionSummary(value: unknown): ResgChampionSummary | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const id = readPositiveInteger(value.id)
+  if (
+    id === null ||
+    typeof value.name !== 'string' ||
+    typeof value.title !== 'string' ||
+    typeof value.alias !== 'string' ||
+    typeof value.tier !== 'string' ||
+    !Array.isArray(value.roles) ||
+    !value.roles.every((role) => typeof role === 'string')
+  ) {
+    return null
+  }
+
+  const totalMatches = readFiniteNumber(value, TOTAL_MATCHES_KEYS)
+  if (totalMatches === null) {
+    return null
+  }
+
+  return {
+    id,
+    name: value.name,
+    title: value.title,
+    alias: value.alias,
+    roles: value.roles,
+    totalMatches,
+    tier: value.tier
+  }
 }
 
 /** 校验一个 Riot 资源引用。 */
@@ -470,115 +730,100 @@ function isNamedResource(value: unknown): value is ResgNamedResource {
   )
 }
 
-/** 校验通用排名行。 */
-function isRankedBuild(value: unknown): value is ResgRankedBuild {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.rank) &&
-    (value.rank as number) > 0 &&
-    Array.isArray(value.value) &&
-    value.value.length > 0 &&
-    value.value.every(isNamedResource) &&
-    isFiniteNumber(value.totalMatches) &&
-    value.totalMatches >= 0 &&
-    isRate(value.winRate) &&
-    isRate(value.pickRate)
-  )
+/** 已通过信任边界的海克斯组合。 */
+type ParsedAugmentCombo = {
+  /** 组合在当前分组中的内部 ID。 */
+  id: number
+  /** 组合名次。 */
+  rank: number
+  /** 该组合包含的海克斯数量。 */
+  size: number
+  /** 组合内海克斯的 Riot ID 和可选名称。 */
+  augments: { ids: number[]; names: string[] }
+  /** 组合样本数。 */
+  totalMatches: number
+  /** 组合胜率，范围为 0 到 1。 */
+  winRate: number
+  /** 已过滤损坏项后的关联出装。 */
+  builds: ResgGuideLinkedBuild[]
 }
 
-/** 校验单件装备统计。 */
-function isItemStat(value: unknown): value is ResgItemStat {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.rank) &&
-    (value.rank as number) > 0 &&
-    toPositiveId(value.item) !== null &&
-    isFiniteNumber(value.totalMatches) &&
-    value.totalMatches >= 0 &&
-    isFiniteNumber(value.winMatches) &&
-    value.winMatches >= 0 &&
-    isRate(value.winRate) &&
-    isRate(value.pickRate)
-  )
+/**
+ * 把一条海克斯关联出装转换成稳定视图模型。
+ *
+ * @param value 未经信任的关联出装，样本/胜率字段可为 snake_case 或短名。
+ * @returns 合法出装；结构或统计字段非法时返回 `null`。
+ */
+function toLinkedBuild(value: unknown): ResgGuideLinkedBuild | null {
+  if (!isRecord(value)) {
+    return null
+  }
+
+  const items = readResourceRefs(value.items)
+  const play = readNonNegativeNumber(value, AUGMENT_BUILD_MATCHES_KEYS)
+  const winRate = readRate(value, AUGMENT_BUILD_WIN_RATE_KEYS)
+  if (!items || play === null || winRate === null) {
+    return null
+  }
+
+  return {
+    ids: items.ids,
+    names: items.names,
+    play,
+    winRate
+  }
 }
 
-/** 校验带独立统计的海克斯强化。 */
-function isRecommendedAugment(value: unknown): value is ResgRecommendedAugment {
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    (value.id as number) > 0 &&
-    typeof value.name === 'string' &&
-    isFiniteNumber(value.quality) &&
-    isFiniteNumber(value.totalMatches) &&
-    value.totalMatches >= 0 &&
-    isRate(value.winRate) &&
-    isRate(value.pickRate)
-  )
-}
+/**
+ * 把一条海克斯组合整理成内部模型。
+ *
+ * @param value 未经信任的海克斯组合，强化列表字段可为 `augments` 或 `a`，出装字段可为 `builds` 或 `b`。
+ * @returns 合法组合；结构或统计字段非法时返回 `null`。
+ */
+function toParsedAugmentCombo(value: unknown): ParsedAugmentCombo | null {
+  if (!isRecord(value)) {
+    return null
+  }
 
-/** 校验海克斯组合关联出装。 */
-function isAugmentItemBuild(value: unknown): value is ResgAugmentItemBuild {
-  return (
-    isRecord(value) &&
-    readResourceRefs(value.items) !== null &&
-    isFiniteNumber(value.total_matches) &&
-    value.total_matches >= 0 &&
-    isRate(value.win_rate)
-  )
-}
+  const id = readInteger(value.id)
+  const rank = readPositiveInteger(value.rank)
+  const size = readIntegerInRange(value.size, 1, 4)
+  if (id === null || rank === null || size === null) {
+    return null
+  }
 
-type ResgAugmentComboCandidate = Omit<ResgAugmentCombo, 'builds'> & { builds: unknown[] }
-type ResgValidAugmentCombo = Omit<ResgAugmentComboCandidate, 'builds'> & {
-  builds: ResgAugmentItemBuild[]
-}
+  const augments = readResourceRefs(readField(value, ['augments', 'a']))
+  const play = readNonNegativeNumber(value, TOTAL_MATCHES_KEYS)
+  const winRate = readRate(value, WIN_RATE_KEYS)
+  const builds = readField(value, ['builds', 'b'])
+  if (
+    !augments ||
+    augments.ids.length !== size ||
+    play === null ||
+    winRate === null ||
+    !Array.isArray(builds)
+  ) {
+    return null
+  }
 
-/** 校验海克斯组合本体；关联出装由子项校验独立过滤。 */
-function isAugmentComboCandidate(value: unknown): value is ResgAugmentComboCandidate {
-  const augments = isRecord(value) ? readResourceRefs(value.augments) : null
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    Number.isInteger(value.rank) &&
-    (value.rank as number) > 0 &&
-    Number.isInteger(value.size) &&
-    (value.size as number) >= 1 &&
-    (value.size as number) <= 4 &&
-    augments !== null &&
-    augments.ids.length === value.size &&
-    isFiniteNumber(value.totalMatches) &&
-    value.totalMatches >= 0 &&
-    isRate(value.winRate) &&
-    Array.isArray(value.builds)
-  )
+  return {
+    id,
+    rank,
+    size,
+    augments,
+    totalMatches: play,
+    winRate,
+    builds: builds.flatMap((build) => {
+      const mapped = toLinkedBuild(build)
+      return mapped ? [mapped] : []
+    })
+  }
 }
 
 /** 保留合法海克斯组合，并仅丢弃各组合内损坏的关联出装。 */
-function collectValidAugmentCombos(groups: unknown): ResgValidAugmentCombo[] {
-  return recordArrayValues(groups)
-    .filter(isAugmentComboCandidate)
-    .map((combo) => ({
-      ...combo,
-      builds: combo.builds.filter(isAugmentItemBuild)
-    }))
-}
-
-/** 校验独立装备组合。 */
-function isItemCombo(value: unknown): value is ResgItemCombo {
-  const items = isRecord(value) ? readResourceRefs(value.items) : null
-  return (
-    isRecord(value) &&
-    Number.isInteger(value.id) &&
-    Number.isInteger(value.rank) &&
-    (value.rank as number) > 0 &&
-    Number.isInteger(value.size) &&
-    (value.size as number) >= 1 &&
-    (value.size as number) <= 5 &&
-    items !== null &&
-    items.ids.length === value.size &&
-    isFiniteNumber(value.totalMatches) &&
-    value.totalMatches >= 0 &&
-    isRate(value.winRate) &&
-    isRate(value.pickRate)
-  )
+function collectValidAugmentCombos(groups: unknown): ParsedAugmentCombo[] {
+  return recordArrayValues(groups).flatMap((combo) => {
+    const mapped = toParsedAugmentCombo(combo)
+    return mapped ? [mapped] : []
+  })
 }

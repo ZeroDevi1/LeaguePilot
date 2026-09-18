@@ -405,6 +405,210 @@ describe('RESG data adapter', () => {
     })
   })
 
+  it('normalizes abbreviated champion index fields from current RESG modules', () => {
+    expect(
+      adaptResgChampionIndex({
+        items: [
+          {
+            id: 79,
+            name: '酒桶',
+            title: '古拉加斯',
+            alias: 'Gragas',
+            roles: ['fighter', 'mage'],
+            ip: '/assets/game/champion-icons/79.png',
+            tm: 231379,
+            wm: 114128,
+            wr: 0.4933,
+            tier: 'T2'
+          }
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 1
+      })
+    ).toEqual({
+      items: [
+        {
+          id: 79,
+          name: '酒桶',
+          title: '古拉加斯',
+          alias: 'Gragas',
+          roles: ['fighter', 'mage'],
+          totalMatches: 231379,
+          winMatches: 114128,
+          winRate: 0.4933,
+          tier: 'T2'
+        }
+      ]
+    })
+  })
+
+  it('normalizes abbreviated champion detail modules from current RESG payloads', () => {
+    const guide = adaptResgChampionGuide(
+      {
+        champion: {
+          id: 79,
+          name: '酒桶',
+          title: '古拉加斯',
+          alias: 'Gragas',
+          roles: ['fighter', 'mage'],
+          ip: '/assets/game/champion-icons/79.png',
+          tm: 231379,
+          wm: 114128,
+          wr: 0.4933,
+          tier: 'T2'
+        },
+        b: {
+          SPELLS: [
+            {
+              rank: 1,
+              value: [
+                { id: 4, name: '闪现', icon: '/flash.png' },
+                { id: 32, name: '标记', icon: '/mark.png' }
+              ],
+              tm: 219284,
+              wm: 0,
+              wr: 0.4948,
+              pr: 0.9477
+            }
+          ],
+          SKILL_ORDER: [
+            {
+              rank: 1,
+              value: [
+                { id: 0, name: 'Q' },
+                { id: 0, name: 'E' }
+              ],
+              tm: 133719,
+              wm: 0,
+              wr: 0.4982,
+              pr: 0.5807
+            }
+          ],
+          BOOTS: [
+            {
+              rank: 1,
+              value: [{ id: 3020, name: '法师之靴' }],
+              tm: 57972,
+              wm: 0,
+              wr: 0.4991,
+              pr: 0.4376
+            }
+          ]
+        },
+        si: [
+          {
+            rank: 1,
+            value: [{ id: 3802, name: '遗失的章节' }],
+            tm: 41047,
+            wm: 20776,
+            wr: 0.5062,
+            pr: 0.3717
+          }
+        ],
+        ia: {
+          items: [
+            {
+              rank: 1,
+              item: { id: 4645 },
+              tm: 127150,
+              wm: 63263,
+              wr: 0.4975,
+              pr: 0.5495
+            }
+          ],
+          combos: {
+            '2': [
+              {
+                id: 1,
+                rank: 1,
+                size: 2,
+                items: [6655, 4645],
+                tm: 4978,
+                wm: 2534,
+                wr: 0.509,
+                pr: 0.1942
+              }
+            ]
+          }
+        },
+        ra: [
+          {
+            id: 2078,
+            name: '连锁反应',
+            quality: 2,
+            tm: 32356,
+            wm: 16660,
+            wr: 0.5149,
+            pr: 0.0384
+          }
+        ],
+        ac: {
+          '1': [
+            {
+              id: 1,
+              rank: 1,
+              size: 1,
+              a: [2083],
+              tm: 4949,
+              wm: 2529,
+              wr: 0.511,
+              b: [
+                {
+                  items: [6655, 4645],
+                  tm: 2547,
+                  wr: 0.4931
+                }
+              ]
+            }
+          ]
+        }
+      },
+      '16.18'
+    )
+
+    expect(guide?.champion).toMatchObject({
+      id: 79,
+      alias: 'Gragas',
+      totalMatches: 231379,
+      tier: 'T2'
+    })
+    expect(guide?.spells[0]).toMatchObject({
+      ids: [4, 32],
+      play: 219284,
+      winRate: 0.4948,
+      pickRate: 0.9477
+    })
+    expect(guide?.skillOrders[0]).toMatchObject({
+      ids: [],
+      names: ['Q', 'E'],
+      play: 133719
+    })
+    expect(guide?.starterItems[0].ids).toEqual([3802])
+    expect(guide?.boots[0].ids).toEqual([3020])
+    expect(guide?.items[0]).toMatchObject({ id: 4645, play: 127150, win: 63263 })
+    expect(guide?.itemCombos[0]).toMatchObject({
+      size: 2,
+      ids: [6655, 4645],
+      play: 4978,
+      pickRate: 0.1942
+    })
+    expect(guide?.itemBuilds[0].ids).toEqual([6655, 4645])
+    expect(guide?.augments[0]).toMatchObject({ id: 2078, play: 32356, pickRate: 0.0384 })
+    expect(guide?.augmentCombos[0]).toMatchObject({
+      size: 1,
+      augmentIds: [2083],
+      play: 4949,
+      winRate: 0.511
+    })
+    expect(guide?.augmentCombos[0].builds[0]).toMatchObject({
+      ids: [6655, 4645],
+      play: 2547,
+      winRate: 0.4931
+    })
+    expect(guide && isResgGuideUsable(guide)).toBe(true)
+  })
+
   it('rejects malformed champion details and recognizes empty placeholders', () => {
     expect(
       adaptResgChampionGuide(

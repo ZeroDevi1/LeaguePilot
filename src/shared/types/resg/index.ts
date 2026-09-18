@@ -163,7 +163,12 @@ export interface ResgRecommendedAugment extends ResgAugment {
   pickRate: number
 }
 
-/** RESG 英雄详情原始响应中本功能使用的字段。 */
+/**
+ * RESG 英雄详情原始响应中本功能使用的字段。
+ *
+ * 当前静态模块还会把若干对象和统计字段压缩为短名，例如 `b` / `si` / `ia` / `ra` / `ac` 以及 `tm` / `wr`。
+ * 这些短名由 data adapter 在信任边界展开，不进入应用内模型。
+ */
 export interface ResgChampionResponse {
   /** 英雄基础信息。 */
   champion: ResgChampionSummary
