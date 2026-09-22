@@ -1,8 +1,12 @@
 import { isResgHtmlDocument, parseResgEsmModule } from '@shared/data-adapter/resg/esm-module'
 
-/** RESG 稳定入口；发布目录由其中的 iframe 声明。 */
+/** RESG 稳定入口；内容根由其中的 iframe 声明。 */
 const RESG_ENTRY_URL = 'https://www.bilibili.com/toy/resg/index.html'
 const RELEASE_CACHE_TTL_MS = 15 * 60 * 1000
+/** 当前固定内容页；其目录就是 API 根。 */
+const STABLE_RELEASE_PATH = '/toy/resg/index.html'
+/** 旧版按发布号分目录的内容页，例如 `/toy/resg/19226257645568-v12014/index.html`。 */
+const VERSIONED_RELEASE_PATH = /^\/toy\/resg\/\d+-v\d+\/index\.html$/
 /** RESG 版本索引路径。 */
 const VERSION_INDEX_PATH = '/api/v1/versions.js'
 /** RESG 英雄列表路径。 */
@@ -17,7 +21,27 @@ type Fetcher = (input: URL, init: RequestInit) => Promise<Response>
 const releaseCache = new WeakMap<Fetcher, { baseUrl: URL; expiresAt: number }>()
 
 /**
- * 从固定入口解析受限发布目录，不执行 HTML 或脚本。
+ * 判断 iframe 地址是否是允许代理的 RESG 内容页。
+ *
+ * 只接受 `bilibilitoy.com` 上的固定内容根，以及旧的版本化发布目录。
+ * 用户名、查询参数、哈希和非默认端口都会使 `origin` 或路径不匹配，从而拒绝。
+ *
+ * @param url 从入口 HTML 中读到的绝对 iframe 地址。
+ * @returns 地址落在允许的内容页上时返回 `true`。
+ */
+function isTrustedReleasePage(url: URL): boolean {
+  return (
+    url.origin === 'https://www.bilibilitoy.com' &&
+    !url.username &&
+    !url.password &&
+    !url.search &&
+    !url.hash &&
+    (url.pathname === STABLE_RELEASE_PATH || VERSIONED_RELEASE_PATH.test(url.pathname))
+  )
+}
+
+/**
+ * 从固定入口解析受限内容根，不执行 HTML 或脚本。
  * 仅缓存成功结果；网络与取消错误透传，入口失效或结构不符返回 null。
  */
 async function resolveReleaseUrl(fetcher: Fetcher, signal?: AbortSignal): Promise<URL | null> {
@@ -46,14 +70,7 @@ async function resolveReleaseUrl(fetcher: Fetcher, signal?: AbortSignal): Promis
     } catch {
       continue
     }
-    if (
-      url.origin !== 'https://www.bilibilitoy.com' ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash ||
-      !/^\/toy\/resg\/\d+-v\d+\/index\.html$/.test(url.pathname)
-    ) {
+    if (!isTrustedReleasePage(url)) {
       continue
     }
 
@@ -69,7 +86,7 @@ async function resolveReleaseUrl(fetcher: Fetcher, signal?: AbortSignal): Promis
  * 处理一条受限的 RESG 代理请求。
  *
  * 仅允许三个固定 GET 路径形状，不转发 renderer 请求头或查询参数，也不跟随或暴露上游重定向。
- * 从 B 站入口发现并短期缓存发布目录；上游 ESM JSON 模块转成 JSON，SPA HTML fallback 被拒绝。
+ * 从 B 站入口发现并短期缓存内容根；上游 ESM JSON 模块转成 JSON，SPA HTML fallback 被拒绝。
  *
  * @param request renderer 发起的 `akari://resg` 请求。
  * @param signal main proxy cancellation 提供的取消信号。

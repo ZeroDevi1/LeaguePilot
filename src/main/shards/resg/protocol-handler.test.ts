@@ -29,6 +29,32 @@ function createUpstream() {
 afterEach(() => vi.restoreAllMocks())
 
 describe('RESG protocol allowlist', () => {
+  it('accepts the stable content root declared by the current entry iframe', async () => {
+    const release = 'https://www.bilibilitoy.com/toy/resg/'
+    const fetcher = vi.fn(async (url: URL) => {
+      if (url.href === ENTRY) {
+        return new Response(`<iframe src="${release}index.html"></iframe>`)
+      }
+      if (url.href === `${release}api/v1/versions.js`) {
+        return new Response('export default {"id":1}')
+      }
+      return new Response(null, { status: 404 })
+    })
+
+    const response = await handleResgProtocolRequest(
+      new Request('akari://resg/api/v1/versions.js'),
+      undefined,
+      fetcher
+    )
+
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toEqual({ id: 1 })
+    expect(fetcher.mock.calls.map(([url]) => url.href)).toEqual([
+      ENTRY,
+      `${release}api/v1/versions.js`
+    ])
+  })
+
   it('discovers the release prefix for all three data routes without forwarding credentials', async () => {
     const { fetcher } = createUpstream()
     for (const path of [
@@ -82,6 +108,8 @@ describe('RESG protocol allowlist', () => {
     'https://www.bilibilitoy.com.evil.test/toy/resg/1-v2/index.html',
     'https://user:secret@www.bilibilitoy.com/toy/resg/1-v2/index.html',
     'https://www.bilibilitoy.com/toy/other/1-v2/index.html',
+    'https://www.bilibilitoy.com/toy/resg/v2/index.html',
+    'https://www.bebox.net/toy/resg/index.html',
     'https://www.bilibilitoy.com/toy/resg/1-v2/index.html?target=evil',
     'https://www.bilibilitoy.com:444/toy/resg/1-v2/index.html'
   ])('rejects an untrusted release without requesting it: %s', async (src) => {
