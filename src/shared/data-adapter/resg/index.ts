@@ -68,6 +68,17 @@ export function adaptResgChampionIndex(response: unknown): ResgChampionIndexResp
 }
 
 /**
+ * 把 RESG 的 `T0` 到 `T4` 梯队标签转换为攻略窗口通用的梯队编号。
+ *
+ * @param tier RESG 梯队标签，例如 `T1`；大小写不敏感。
+ * @returns 0 到 4 的梯队编号；无法解析时返回 5，让 UI 使用默认弱化配色。
+ */
+export function parseResgTierLevel(tier: string): number {
+  const value = Number(tier.replace(/^T/i, ''))
+  return Number.isInteger(value) && value >= 0 ? value : 5
+}
+
+/**
  * 从 RESG 版本索引中选择数值最大的主次版本。
  *
  * @param versions RESG 版本索引；数组顺序不作为新旧依据。

@@ -156,6 +156,8 @@ opgg:
     slotLevel: '{{level}} 级'
   resg:
     title: RESG 大乱斗攻略
+    rankOf: '排名 {{rank}} / {{total}}'
+    winRateRank: 胜率排名
     version: 数据版本 {{version}}
     aramOnly: 仅大乱斗 · 实时单英雄查询
     importItems: 导入 RESG 出装

@@ -38,6 +38,7 @@ import LcuImage from '@renderer-shared/components/LcuImage.vue'
 import { useCompositionAwareInput } from '@renderer-shared/composables/useCompositionAwareInput'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
 import { championIconUri } from '@renderer-shared/shards/league-client/game-data-assets'
+import { parseResgTierLevel } from '@shared/data-adapter/resg'
 import type { ResgChampionIndexItem } from '@shared/types/resg'
 import { useTranslation } from 'i18next-vue'
 import {
@@ -102,9 +103,9 @@ const columns: DataTableColumns<ResgChampionIndexItem> = [
     align: 'center',
     width: 76,
     className: 'text-[13px] dark:text-white/80 text-black/80',
-    sorter: (left, right) => parseTier(left.tier) - parseTier(right.tier),
+    sorter: (left, right) => parseResgTierLevel(left.tier) - parseResgTierLevel(right.tier),
     render: (row) => (
-      <span class={getTierTextColorClass(parseTier(row.tier))}>
+      <span class={getTierTextColorClass(parseResgTierLevel(row.tier))}>
         {row.tier === 'T0' ? 'OP' : row.tier}
       </span>
     )
@@ -143,15 +144,4 @@ const rowProps: DataTableCreateRowProps<ResgChampionIndexItem> = (row) => ({
   class: 'cursor-pointer',
   onClick: () => setTab('champion', row.id)
 })
-
-/**
- * 把 RESG 的 `T0` 到 `T4` 标签转换为现有梯队配色编号。
- *
- * @param tier RESG 梯队标签。
- * @returns 0 到 4 的梯队编号；无法解析时返回 5 以使用默认弱化色。
- */
-function parseTier(tier: string): number {
-  const value = Number(tier.replace(/^T/i, ''))
-  return Number.isFinite(value) ? value : 5
-}
 </script>

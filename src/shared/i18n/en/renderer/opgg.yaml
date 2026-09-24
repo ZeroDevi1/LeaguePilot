@@ -156,6 +156,8 @@ opgg:
     slotLevel: 'Lv. {{level}}'
   resg:
     title: RESG ARAM Guide
+    rankOf: 'Rank {{rank}} / {{total}}'
+    winRateRank: WR rank
     version: Data version {{version}}
     aramOnly: ARAM only · live single-champion query
     importItems: Import RESG Items
