@@ -6,6 +6,7 @@ import { useAutoChampConfigStore } from '@renderer-shared/shards/auto-champ-conf
 import { ChampionDataRenderer } from '@renderer-shared/shards/champion-data'
 import { useChampionDataStore } from '@renderer-shared/shards/champion-data/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
+import { useMayhemAugmentStore } from '@renderer-shared/shards/mayhem-augment/store'
 import type {
   ChampionDataFallbackReason,
   ChampionDataLoadResult,
@@ -252,6 +253,7 @@ export function provideOpgg() {
   const championData = useInstance(ChampionDataRenderer)
 
   const lcs = useLeagueClientStore()
+  const mayhemAugmentStore = useMayhemAugmentStore()
   const ogs = useOpggStore()
   const championDataStore = useChampionDataStore()
   const resolveAutoChampConfig = useHasAutoChampConfig()
@@ -800,11 +802,37 @@ export function provideOpgg() {
     await (provider.value === 'resg' ? updateResg({ force: true }) : update({ force: true }))
   }
 
+  /**
+   * 海克斯大乱斗对局进行中打开窗口（例如通过快捷键）时，自动定位到本局英雄，
+   * 让强化选择助手立即可用。选人阶段已同步过英雄时不会重复请求。
+   *
+   * @param sessionChampionId 本局玩家英雄 ID。
+   */
+  const focusMayhemSessionChampion = async (sessionChampionId: number) => {
+    if (championId.value === sessionChampionId) {
+      return
+    }
+
+    currentTab.value = 'champion'
+    if (provider.value === 'resg') {
+      await updateResg({ championId: sessionChampionId })
+    } else {
+      await update({ championId: sessionChampionId, mode: 'aram_mayhem', position: 'none' })
+    }
+  }
+
   onMounted(() => {
     if (mode.value !== savedMode) {
       void championData.setPreferences({ mode: toChampionDataMode(mode.value) })
     }
-    refresh()
+
+    // 首次加载若已处于海克斯大乱斗对局，直接定位到本局英雄，避免与默认刷新互相取消。
+    const sessionChampionId = mayhemAugmentStore.session?.championId ?? null
+    if (sessionChampionId) {
+      void focusMayhemSessionChampion(sessionChampionId)
+    } else {
+      refresh()
+    }
   })
 
   // persistent
@@ -1046,6 +1074,13 @@ export function provideOpgg() {
       }
     },
     { immediate: true, debounce: 500 }
+  )
+
+  watch(
+    () => mayhemAugmentStore.session?.championId ?? null,
+    (sessionChampionId) => {
+      if (sessionChampionId) void focusMayhemSessionChampion(sessionChampionId)
+    }
   )
 
   provide(OpggContextKey, {

@@ -47,6 +47,25 @@ export interface BuildAugmentCandidatesInput {
   suggestionLimit?: number
 }
 
+/**
+ * 胜率的 Wilson 95% 置信下界。
+ *
+ * 用于对小样本降权：11 场 90% 的组合不应排在 3000 场 60% 的组合前面。
+ *
+ * @param winRate 胜率，0 到 1。
+ * @param play 样本场次。
+ * @returns 置信下界，0 到 1；样本为 0 时返回 0。
+ */
+export function wilsonLowerBound(winRate: number, play: number): number {
+  if (play <= 0) return 0
+  const z = 1.96
+  const z2 = z * z
+  const denominator = 1 + z2 / play
+  const center = winRate + z2 / (2 * play)
+  const margin = z * Math.sqrt((winRate * (1 - winRate)) / play + z2 / (4 * play * play))
+  return Math.max(0, (center - margin) / denominator)
+}
+
 const EMPTY_STATS: AugmentCandidateStats = {
   play: null,
   winRate: null,
@@ -58,7 +77,7 @@ const EMPTY_STATS: AugmentCandidateStats = {
 }
 
 /**
- * 找出 RESG 中包含全部给定强化的组合，按胜率降序。
+ * 找出 RESG 中包含全部给定强化的组合，按胜率置信下界降序（小样本自动靠后）。
  *
  * @param combos RESG 组合列表。
  * @param requiredAugmentIds 组合必须包含的强化 ID。
@@ -75,13 +94,19 @@ export function findCombosContaining(
   const required = new Set(requiredAugmentIds)
   return combos
     .filter((combo) => {
+      // 单个强化不构成“组合”，其统计已由单体榜给出。
+      if (combo.augmentIds.length < 2) return false
       const ids = new Set(combo.augmentIds)
       for (const id of required) {
         if (!ids.has(id)) return false
       }
       return true
     })
-    .toSorted((left, right) => right.winRate - left.winRate || right.play - left.play)
+    .toSorted(
+      (left, right) =>
+        wilsonLowerBound(right.winRate, right.play) - wilsonLowerBound(left.winRate, left.play) ||
+        right.play - left.play
+    )
 }
 
 /**
@@ -111,7 +136,10 @@ export function buildAugmentCandidates(input: BuildAugmentCandidatesInput): Augm
     if (resgGuide) {
       candidateIds = resgGuide.augments
         .filter((item) => !picked.has(item.id))
-        .toSorted((left, right) => right.winRate - left.winRate)
+        .toSorted(
+          (left, right) =>
+            wilsonLowerBound(right.winRate, right.play) - wilsonLowerBound(left.winRate, left.play)
+        )
         .slice(0, suggestionLimit)
         .map((item) => item.id)
     } else if (kiwiAugments) {
@@ -147,9 +175,14 @@ export function buildAugmentCandidates(input: BuildAugmentCandidatesInput): Augm
       popular: kiwi?.popular ?? null
     }
 
-    // RESG 以“最佳组合胜率”优先，其次单体胜率；OP.GG/101 以梯队和表现分排序。
+    // RESG 以“最佳组合”的胜率置信下界优先，没有组合时退回单体置信下界；
+    // OP.GG/101 以梯队和表现分排序。
     const score = resgGuide
-      ? (combos[0]?.winRate ?? stats.winRate ?? -1)
+      ? combos[0]
+        ? wilsonLowerBound(combos[0].winRate, combos[0].play)
+        : resg
+          ? wilsonLowerBound(resg.winRate, resg.play)
+          : -1
       : stats.tier !== null
         ? 100 - stats.tier * 10 + (stats.performance ?? 0) / 1000
         : (stats.performance ?? -1)

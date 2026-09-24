@@ -51,26 +51,6 @@ export enum Level {
   KSilver = 'kSilver'
 }
 
-/**
- * 把 gtimg 相对/协议相对图标路径收成可请求的绝对 URL。
- */
-export function resolveGtimgAssetUrl(icon: string): string | null {
-  const trimmed = icon.trim()
-  if (!trimmed) {
-    return null
-  }
-
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed
-  }
-
-  if (trimmed.startsWith('//')) {
-    return `https:${trimmed}`
-  }
-
-  return `https://game.gtimg.cn/${trimmed.replace(/^\//, '')}`
-}
-
 export class GtimgApi {
   static BASE_URL = 'https://game.gtimg.cn/'
 

@@ -3,7 +3,7 @@ import { i18next } from '@renderer-shared/i18n'
 import { useAppCommonStore } from '@renderer-shared/shards/app-common/store'
 import { useExtraAssetsStore } from '@renderer-shared/shards/extra-assets/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
-import { resolveGtimgAssetUrl } from '@shared/data-sources/gtimg'
+import { resolveGtimgAssetUrl } from '@shared/data-sources/gtimg/asset-url'
 
 import type {
   AkariResourceProviderValue,

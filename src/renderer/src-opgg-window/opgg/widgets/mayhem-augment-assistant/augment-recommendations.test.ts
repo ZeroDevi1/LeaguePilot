@@ -1,9 +1,13 @@
 import type { ResgChampionGuide, ResgGuideAugmentCombo } from '@shared/types/resg'
 import { describe, expect, it } from 'vitest'
 
-import { buildAugmentCandidates, findCombosContaining } from './augment-recommendations'
+import {
+  buildAugmentCandidates,
+  findCombosContaining,
+  wilsonLowerBound
+} from './augment-recommendations'
 
-function combo(augmentIds: number[], winRate: number, play = 100): ResgGuideAugmentCombo {
+function combo(augmentIds: number[], winRate: number, play = 1000): ResgGuideAugmentCombo {
   return {
     rank: 1,
     size: augmentIds.length,
@@ -52,6 +56,12 @@ describe('findCombosContaining', () => {
 
   it('returns nothing when no augment is required', () => {
     expect(findCombosContaining(resgGuide().augmentCombos, [])).toEqual([])
+  })
+})
+
+describe('wilsonLowerBound', () => {
+  it('ranks a large sample with lower win rate above a tiny sample with higher win rate', () => {
+    expect(wilsonLowerBound(0.6, 3000)).toBeGreaterThan(wilsonLowerBound(0.8, 10))
   })
 })
 

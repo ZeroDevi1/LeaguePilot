@@ -382,10 +382,19 @@ const setOffered = (ids: number[]) => {
   void mayhemAugment.setOfferedAugments(activeRoundIndex.value, ids.slice(0, 3))
 }
 
-const togglePick = (augmentId: number) => {
+const togglePick = async (augmentId: number) => {
   if (activeRoundIndex.value === null || !activeRound.value) return
+  const roundIndex = activeRoundIndex.value
   const next = activeRound.value.pickedAugmentId === augmentId ? null : augmentId
-  void mayhemAugment.setPickedAugment(activeRoundIndex.value, next)
+  const updated = await mayhemAugment.setPickedAugment(roundIndex, next)
+
+  // 确认选择后自动跳到下一轮已出现但尚未选择的轮次，减少对局中的操作。
+  if (next !== null && updated && activeRoundIndex.value === roundIndex) {
+    const pending = updated.rounds.find(
+      (round) => round.index > roundIndex && round.reached && round.pickedAugmentId === null
+    )
+    if (pending) activeRoundIndex.value = pending.index
+  }
 }
 
 const clearManualEntries = () => {
