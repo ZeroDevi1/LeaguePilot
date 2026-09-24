@@ -160,39 +160,88 @@
             </NButton>
           </div>
 
-          <!-- RESG 组合推荐：包含已选 + 该候选 -->
+          <!-- RESG 组合推荐：包含已选 + 该候选；可展开查看该组合下的全部关联出装 -->
           <div v-if="candidate.combos.length" class="mt-1 flex flex-col gap-1">
             <div
               v-for="combo in candidate.combos.slice(0, COMBO_LIMIT)"
-              :key="combo.augmentIds.join('-')"
-              class="combo-row"
+              :key="comboKey(candidate.augmentId, combo)"
+              class="combo-block"
             >
-              <div class="flex items-center gap-1">
-                <AugmentDisplay
-                  v-for="augmentId in combo.augmentIds"
-                  :key="augmentId"
-                  :size="20"
-                  :augment-id="augmentId"
-                />
+              <div class="combo-row">
+                <NButton
+                  v-if="combo.builds.length"
+                  size="tiny"
+                  quaternary
+                  circle
+                  :title="
+                    t(
+                      isComboExpanded(candidate.augmentId, combo)
+                        ? 'opgg.resg.hideLinkedBuilds'
+                        : 'opgg.resg.showLinkedBuilds'
+                    )
+                  "
+                  :aria-expanded="isComboExpanded(candidate.augmentId, combo)"
+                  @click="toggleCombo(candidate.augmentId, combo)"
+                >
+                  {{ isComboExpanded(candidate.augmentId, combo) ? '−' : '+' }}
+                </NButton>
+                <div class="flex items-center gap-1">
+                  <AugmentDisplay
+                    v-for="augmentId in combo.augmentIds"
+                    :key="augmentId"
+                    :size="20"
+                    :augment-id="augmentId"
+                  />
+                </div>
+                <span class="text-[11px]">
+                  {{
+                    t('opgg.mayhemAssistant.comboStats', {
+                      winRate: (combo.winRate * 100).toFixed(2),
+                      play: combo.play.toLocaleString()
+                    })
+                  }}
+                </span>
+                <div
+                  v-if="combo.builds[0] && !isComboExpanded(candidate.augmentId, combo)"
+                  class="ml-auto flex items-center gap-1"
+                >
+                  <span class="text-[10px] text-black/50 dark:text-white/50">
+                    {{ t('opgg.resg.linkedBuild') }}
+                  </span>
+                  <ItemDisplay
+                    v-for="itemId in combo.builds[0].ids"
+                    :key="itemId"
+                    :size="18"
+                    :item-id="itemId"
+                  />
+                </div>
               </div>
-              <span class="text-[11px]">
-                {{
-                  t('opgg.mayhemAssistant.comboStats', {
-                    winRate: (combo.winRate * 100).toFixed(2),
-                    play: combo.play.toLocaleString()
-                  })
-                }}
-              </span>
-              <div v-if="combo.builds[0]" class="ml-auto flex items-center gap-1">
+              <div
+                v-for="(build, index) in isComboExpanded(candidate.augmentId, combo)
+                  ? combo.builds
+                  : []"
+                :key="`${index}-${build.ids.join('-')}`"
+                class="linked-build"
+              >
                 <span class="text-[10px] text-black/50 dark:text-white/50">
                   {{ t('opgg.resg.linkedBuild') }}
                 </span>
-                <ItemDisplay
-                  v-for="itemId in combo.builds[0].ids"
-                  :key="itemId"
-                  :size="18"
-                  :item-id="itemId"
-                />
+                <div class="flex gap-1">
+                  <ItemDisplay
+                    v-for="itemId in build.ids"
+                    :key="itemId"
+                    :size="22"
+                    :item-id="itemId"
+                  />
+                </div>
+                <span class="ml-auto text-[11px]">
+                  {{
+                    t('opgg.resg.buildStatsWithoutPickRate', {
+                      play: build.play.toLocaleString(),
+                      winRate: (build.winRate * 100).toFixed(2)
+                    })
+                  }}
+                </span>
               </div>
             </div>
           </div>
@@ -217,6 +266,8 @@ import { useExtraAssetsStore } from '@renderer-shared/shards/extra-assets/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
 import { MayhemAugmentRenderer } from '@renderer-shared/shards/mayhem-augment'
 import { useMayhemAugmentStore } from '@renderer-shared/shards/mayhem-augment/store'
+import type { ResgGuideAugmentCombo } from '@shared/types/resg'
+import { isChampionNameMatchKeywords } from '@shared/utils/string-match'
 import { useTranslation } from 'i18next-vue'
 import { NAlert, NButton, NSelect, NTab, NTabs, NTag, type SelectOption } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
@@ -340,15 +391,17 @@ const augmentOptions = computed<SelectOption[]>(() => {
     .toSorted((left, right) => String(left.label).localeCompare(String(right.label)))
 })
 
+/** 支持中文、全拼、首字母缩写（如 `bjfd` → 暴击飞弹）以及英文名的模糊匹配。 */
 const filterAugmentOption = (pattern: string, option: SelectOption) => {
-  const query = pattern.trim().toLowerCase()
+  const query = pattern.trim()
   if (!query) return true
 
   const id = option.value as number
   const kiwi = extraAssetsStore.kiwiAugmentsMap[id]
-  return [option.label as string, kiwi?.name_cn, kiwi?.name_en].some((name) =>
-    name?.toLowerCase().includes(query)
+  const keywords = [option.label as string, kiwi?.name_cn, kiwi?.name_en].filter(
+    (name): name is string => Boolean(name)
   )
+  return isChampionNameMatchKeywords(query, keywords)
 }
 
 const renderAugmentOption = (option: SelectOption) => (
@@ -372,6 +425,30 @@ const renderAugmentTag = ({
     </div>
   </NTag>
 )
+
+/** 已展开关联出装的组合，键为 `候选ID:组合海克斯ID列表`；切换轮次或候选变化时重置。 */
+const expandedComboKeys = ref(new Set<string>())
+
+const comboKey = (candidateId: number, combo: ResgGuideAugmentCombo) =>
+  `${candidateId}:${combo.augmentIds.join('-')}`
+
+const isComboExpanded = (candidateId: number, combo: ResgGuideAugmentCombo) =>
+  expandedComboKeys.value.has(comboKey(candidateId, combo))
+
+const toggleCombo = (candidateId: number, combo: ResgGuideAugmentCombo) => {
+  const key = comboKey(candidateId, combo)
+  const next = new Set(expandedComboKeys.value)
+  if (next.has(key)) {
+    next.delete(key)
+  } else {
+    next.add(key)
+  }
+  expandedComboKeys.value = next
+}
+
+watch([activeRoundIndex, () => activeRound.value?.offeredAugmentIds], () => {
+  expandedComboKeys.value = new Set()
+})
 
 const selectRound = (index: string | number) => {
   activeRoundIndex.value = Number(index)
@@ -437,7 +514,15 @@ const formatStats = (candidate: AugmentCandidate) => {
   @apply border-akari-500/60 bg-akari-500/5;
 }
 
+.combo-block {
+  @apply flex flex-col gap-1 rounded bg-black/5 px-1.5 py-1 dark:bg-white/5;
+}
+
 .combo-row {
+  @apply flex items-center gap-2;
+}
+
+.linked-build {
   @apply flex items-center gap-2 rounded bg-black/5 px-1.5 py-1 dark:bg-white/5;
 }
 </style>
