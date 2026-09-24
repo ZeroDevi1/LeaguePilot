@@ -190,6 +190,27 @@ opgg:
     buildStats_other: '{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate'
     buildStatsWithoutPickRate_one: '{{play}} game · {{winRate}}% win rate'
     buildStatsWithoutPickRate_other: '{{play}} games · {{winRate}}% win rate'
+  mayhemAssistant:
+    title: Augment Assistant
+    level: Level {{level}}
+    source: 'Source: {{source}}'
+    clear: Clear entries
+    championMismatch: 'This game uses {{champion}}, which is not the champion shown here'
+    switchChampion: Show this game's champion
+    modeMismatch: 'Current mode is not ARAM: Mayhem, no augment stats available'
+    switchMode: 'Switch to ARAM: Mayhem'
+    roundReached: 'Augment choice at level {{level}} has appeared'
+    roundLocked: 'Unlocks at level {{level}}'
+    offered: Offered
+    offeredPlaceholder: Enter the three augments offered in game (search by name)
+    candidatesFromOffered: Stats and combo suggestions for the entered candidates
+    candidatesFromRanking: No candidates entered; showing the current source ranking
+    pick: Pick
+    picked: Picked
+    comboStats: 'Combo WR {{winRate}}% · {{play}} games'
+    noData: The current source has no augment stats for this champion
+    noStats: No stats
+    waiting: 'The next augment choice appears at level {{level}}'
   champion:
     boots: Boots
     adorableRabi: Kawaii Bunny

@@ -13,6 +13,7 @@ import {
   LeagueClientRendererConfig
 } from '@renderer-shared/shards/league-client'
 import { LoggerRenderer } from '@renderer-shared/shards/logger'
+import { MayhemAugmentRenderer } from '@renderer-shared/shards/mayhem-augment'
 import { PiniaMobxUtilsRenderer } from '@renderer-shared/shards/pinia-mobx-utils'
 import { SettingUtilsRenderer } from '@renderer-shared/shards/setting-utils'
 import { SetupInAppScopeRenderer } from '@renderer-shared/shards/setup-in-app-scope'
@@ -45,6 +46,7 @@ manager.use(LeagueClientRenderer, {
   }
 } as LeagueClientRendererConfig)
 manager.use(LoggerRenderer)
+manager.use(MayhemAugmentRenderer)
 manager.use(OpggRenderer)
 manager.use(PiniaMobxUtilsRenderer)
 manager.use(SettingUtilsRenderer)

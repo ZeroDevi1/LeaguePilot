@@ -62,6 +62,9 @@
           </div>
         </div>
 
+        <!-- 海克斯大乱斗对局中的强化选择助手 -->
+        <MayhemAugmentAssistant />
+
         <ResgChampionGuide />
       </div>
     </NScrollbar>
@@ -79,6 +82,7 @@ import { computed } from 'vue'
 import { RESG_MODE, useOpgg } from './context'
 import { getTierRingColorClass, getTierTextColorClass } from './utils/theme'
 import ResgChampionGuide from './widgets/ResgChampionGuide.vue'
+import MayhemAugmentAssistant from './widgets/mayhem-augment-assistant/MayhemAugmentAssistant.vue'
 
 const { championId, resgChampions, resgGuide, resgError, isLoading, cancel } = useOpgg()
 const { t } = useTranslation()

@@ -185,6 +185,27 @@ opgg:
     itemComboGroup: 'RESG {{size}} 件装 #{{index}}'
     buildStats: '{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%'
     buildStatsWithoutPickRate: '{{play}} 场 · 胜率 {{winRate}}%'
+  mayhemAssistant:
+    title: 海克斯选择助手
+    level: 当前 {{level}} 级
+    source: 数据源：{{source}}
+    clear: 清空录入
+    championMismatch: 本局英雄为 {{champion}}，当前展示的不是本局英雄
+    switchChampion: 切换到本局英雄
+    modeMismatch: 当前模式不是海克斯乱斗，无法给出海克斯统计
+    switchMode: 切换到海克斯乱斗
+    roundReached: '{{level}} 级海克斯选择已出现'
+    roundLocked: '到达 {{level}} 级后开放'
+    offered: 本轮可选
+    offeredPlaceholder: 录入游戏中出现的三个海克斯（可搜索名称）
+    candidatesFromOffered: 按录入的候选给出统计与组合推荐
+    candidatesFromRanking: 尚未录入候选，以下为当前数据源的推荐榜单
+    pick: 选择
+    picked: 已选择
+    comboStats: '组合胜率 {{winRate}}% · {{play}} 场'
+    noData: 当前数据源没有该英雄的海克斯统计
+    noStats: 暂无统计
+    waiting: '进入 {{level}} 级后开始本轮海克斯选择'
   champion:
     boots: 鞋子
     adorableRabi: 兔兔好可爱

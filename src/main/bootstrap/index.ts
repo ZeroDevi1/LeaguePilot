@@ -22,6 +22,7 @@ import { LeagueClientMain } from '@main/shards/league-client'
 import { LeagueClientUxMain } from '@main/shards/league-client-ux'
 import { LoggerFactoryMain } from '@main/shards/logger-factory'
 import { MainWindowUiMain } from '@main/shards/main-window-ui'
+import { MayhemAugmentMain } from '@main/shards/mayhem-augment'
 import { MobxUtilsMain } from '@main/shards/mobx-utils'
 import { NetworkMain } from '@main/shards/network'
 import { OngoingGameMain } from '@main/shards/ongoing-game'
@@ -342,6 +343,7 @@ export function bootstrap() {
     manager.use(AutoSelectMain)
     manager.use(ChampionDataMain)
     manager.use(InGameSendMain)
+    manager.use(MayhemAugmentMain)
     manager.use(ResgMain)
     manager.use(OngoingGameMain)
     manager.use(RespawnTimerMain)

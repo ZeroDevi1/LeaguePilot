@@ -92,6 +92,9 @@
           </div>
         </div>
 
+        <!-- 海克斯大乱斗对局中的强化选择助手 -->
+        <MayhemAugmentAssistant />
+
         <!-- 堆叠的艺术 -->
         <OpggChampionBalance />
         <OpggChampionCounters />
@@ -143,6 +146,7 @@ import OpggChampionSkills from './widgets/OpggChampionSkills.vue'
 import OpggChampionSpells from './widgets/OpggChampionSpells.vue'
 import OpggChampionStarterItems from './widgets/OpggChampionStarterItems.vue'
 import OpggChampionSynergies from './widgets/OpggChampionSynergies.vue'
+import MayhemAugmentAssistant from './widgets/mayhem-augment-assistant/MayhemAugmentAssistant.vue'
 
 const { champion, position, kiwiAugments, cancel, isLoading } = useOpgg()
 
