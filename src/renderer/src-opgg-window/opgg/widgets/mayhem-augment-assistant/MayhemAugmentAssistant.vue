@@ -105,6 +105,7 @@
           :value="activeRound.offeredAugmentIds"
           :options="augmentOptions"
           :filter="filterAugmentOption"
+          @search="setAugmentQuery"
           :render-label="renderAugmentOption"
           :render-tag="renderAugmentTag"
           @update:value="setOffered"
@@ -245,6 +246,33 @@
               </div>
             </div>
           </div>
+          <div v-if="candidate.itemProgression.length" class="mt-1 flex flex-col gap-1">
+            <div
+              v-for="build in candidate.itemProgression"
+              :key="build.ids.join('-')"
+              class="combo-row"
+            >
+              <span class="text-[10px] text-black/50 dark:text-white/50">
+                {{ t('opgg.mayhemAssistant.itemProgression') }}
+              </span>
+              <div class="flex items-center gap-1">
+                <ItemDisplay
+                  v-for="itemId in build.ids"
+                  :key="itemId"
+                  :size="18"
+                  :item-id="itemId"
+                />
+              </div>
+              <span class="text-[11px]">
+                {{
+                  t('opgg.resg.buildStatsWithoutPickRate', {
+                    play: build.play.toLocaleString(),
+                    winRate: (build.winRate * 100).toFixed(2)
+                  })
+                }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       <div v-else class="mt-2 text-xs text-black/60 dark:text-white/60">
@@ -267,7 +295,7 @@ import { useLeagueClientStore } from '@renderer-shared/shards/league-client/stor
 import { MayhemAugmentRenderer } from '@renderer-shared/shards/mayhem-augment'
 import { useMayhemAugmentStore } from '@renderer-shared/shards/mayhem-augment/store'
 import type { ResgGuideAugmentCombo } from '@shared/types/resg'
-import { isChampionNameMatchKeywords } from '@shared/utils/string-match'
+import { isChampionNameMatchKeywords, rankNameMatchKeywords } from '@shared/utils/string-match'
 import { useTranslation } from 'i18next-vue'
 import { NAlert, NButton, NSelect, NTab, NTabs, NTag, type SelectOption } from 'naive-ui'
 import { computed, ref, watch } from 'vue'
@@ -378,17 +406,57 @@ const candidates = computed<AugmentCandidate[]>(() => {
   })
 })
 
-/** 可录入的全部海克斯：合并 LCU 静态资源与 gtimg kiwi 目录。 */
+/** 当前海克斯搜索框内容；用来把等长首字母匹配排到前面。 */
+const augmentQuery = ref('')
+
+/**
+ * 记录海克斯搜索框输入。
+ *
+ * @param value 选择器当前搜索文本。
+ */
+const setAugmentQuery = (value: string) => {
+  augmentQuery.value = value
+}
+
+/**
+ * 收集一个海克斯的可搜索名称。
+ *
+ * @param id 海克斯 ID。
+ * @param label 当前语言下的显示名。
+ * @returns 显示名、中文名和英文名中非空的那些。
+ */
+const augmentKeywords = (id: number, label: string) => {
+  const kiwi = extraAssetsStore.kiwiAugmentsMap[id]
+  return [label, kiwi?.name_cn, kiwi?.name_en].filter((name): name is string => Boolean(name))
+}
+
+/** 可录入的全部海克斯：合并 LCU 静态资源与 gtimg kiwi 目录。有搜索词时，字数与输入等长的首字母匹配排在前面。 */
 const augmentOptions = computed<SelectOption[]>(() => {
   const ids = new Set<number>()
   for (const key of Object.keys(leagueClientStore.gameData.augments)) ids.add(Number(key))
   for (const key of Object.keys(extraAssetsStore.kiwiAugmentsMap)) ids.add(Number(key))
 
   const pickedElsewhere = new Set(pickedBeforeActiveRound.value)
+  const query = augmentQuery.value.trim()
   return [...ids]
     .filter((id) => Number.isFinite(id) && id > 0 && !pickedElsewhere.has(id))
     .map((id) => ({ value: id, label: resources.augments.name(id) }))
-    .toSorted((left, right) => String(left.label).localeCompare(String(right.label)))
+    .toSorted((left, right) => {
+      if (query) {
+        const leftRank = rankNameMatchKeywords(
+          query,
+          augmentKeywords(left.value as number, String(left.label))
+        )
+        const rightRank = rankNameMatchKeywords(
+          query,
+          augmentKeywords(right.value as number, String(right.label))
+        )
+        const rankDiff =
+          (leftRank ?? Number.MAX_SAFE_INTEGER) - (rightRank ?? Number.MAX_SAFE_INTEGER)
+        if (rankDiff !== 0) return rankDiff
+      }
+      return String(left.label).localeCompare(String(right.label))
+    })
 })
 
 /** 支持中文、全拼、首字母缩写（如 `bjfd` → 暴击飞弹）以及英文名的模糊匹配。 */
@@ -396,12 +464,10 @@ const filterAugmentOption = (pattern: string, option: SelectOption) => {
   const query = pattern.trim()
   if (!query) return true
 
-  const id = option.value as number
-  const kiwi = extraAssetsStore.kiwiAugmentsMap[id]
-  const keywords = [option.label as string, kiwi?.name_cn, kiwi?.name_en].filter(
-    (name): name is string => Boolean(name)
+  return isChampionNameMatchKeywords(
+    query,
+    augmentKeywords(option.value as number, option.label as string)
   )
-  return isChampionNameMatchKeywords(query, keywords)
 }
 
 const renderAugmentOption = (option: SelectOption) => (

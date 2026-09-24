@@ -24,4 +24,9 @@ export async function syncOpggSettings(context: OpggRendererContext) {
     store.frontendSettings,
     'kiwiGuideProvider'
   )
+  await context.settingUtils.savedPropVue(
+    OPGG_RENDERER_NAMESPACE,
+    store.frontendSettings,
+    'preferResg'
+  )
 }

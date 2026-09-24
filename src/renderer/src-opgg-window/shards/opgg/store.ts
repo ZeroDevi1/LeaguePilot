@@ -7,7 +7,9 @@ export const useOpggStore = defineStore('shard:opgg-renderer', () => {
     autoApplyRunes: false,
     autoApplyItems: false,
     autoApplySpells: false,
-    kiwiGuideProvider: 'opgg' as 'opgg' | 'resg'
+    kiwiGuideProvider: 'opgg' as 'opgg' | 'resg',
+    /** 窗口打开时是否优先进入 RESG。为 false 时沿用 champion-data 的 OP.GG / 101 首选源。 */
+    preferResg: false
   })
 
   const savedPreferences = shallowReactive<{

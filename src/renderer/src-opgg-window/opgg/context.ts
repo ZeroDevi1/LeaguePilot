@@ -265,7 +265,7 @@ export function provideOpgg() {
   const { t } = useTranslation()
 
   const currentTab = ref<'champions' | 'champion'>('champions')
-  const provider = ref<GuideProvider>('opgg')
+  const provider = ref<GuideProvider>(ogs.frontendSettings.preferResg ? 'resg' : 'opgg')
 
   const flashPosition = ref<'auto' | 'd' | 'f'>(ogs.savedPreferences.flashPosition)
 
@@ -687,6 +687,8 @@ export function provideOpgg() {
   }
 
   const changeSource = async (source: GuideSource) => {
+    ogs.frontendSettings.preferResg = source === 'resg'
+
     if (source === activeSource.value) {
       return
     }
@@ -1000,32 +1002,33 @@ export function provideOpgg() {
           }
         }
 
-        // RESG 通道只覆盖大乱斗；其它模式保持当前列表，不回退到隐藏的 champion-data 请求。
+        // RESG 只覆盖大乱斗。其它模式改走 champion-data，但不改写“默认数据源为 RESG”的偏好。
         if (provider.value === 'resg') {
           if (mode0 !== 'aram' && mode0 !== RESG_MODE) {
+            cancel()
+            provider.value = 'opgg'
+          } else {
+            currentTab.value = 'champion'
+            championId.value = active.championId
+            const didUpdate = await updateResg({ championId: active.championId })
+            if (!didUpdate || provider.value !== 'resg' || !resgGuide.value) {
+              return
+            }
+
+            const itemSet = createResgItemSet(resgGuide.value, t)
+            if (
+              ogs.frontendSettings.autoApplyItems &&
+              itemSet.itemGroups.some((group) => group.items.length > 0)
+            ) {
+              writeItemSet(itemSet, {
+                position: position0,
+                mode: RESG_MODE,
+                region: region.value,
+                tier: tier.value
+              })
+            }
             return
           }
-
-          currentTab.value = 'champion'
-          championId.value = active.championId
-          const didUpdate = await updateResg({ championId: active.championId })
-          if (!didUpdate || provider.value !== 'resg' || !resgGuide.value) {
-            return
-          }
-
-          const itemSet = createResgItemSet(resgGuide.value, t)
-          if (
-            ogs.frontendSettings.autoApplyItems &&
-            itemSet.itemGroups.some((group) => group.items.length > 0)
-          ) {
-            writeItemSet(itemSet, {
-              position: position0,
-              mode: RESG_MODE,
-              region: region.value,
-              tier: tier.value
-            })
-          }
-          return
         }
 
         currentTab.value = 'champion'

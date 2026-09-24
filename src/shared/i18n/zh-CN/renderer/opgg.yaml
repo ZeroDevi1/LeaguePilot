@@ -139,13 +139,13 @@ opgg:
       autoApplyItems:
         label: 自动应用装备方案
         description: 若英雄数据匹配当前模式，自动应用装备方案。仅当英雄数据窗口启用且可见时生效
-    success: '请求已发送: {{reason}}'
+    success: "请求已发送: {{reason}}"
     summonerSpells: 召唤师技能
     runes: 符文配法
     setSpellsFailedMessage: 设置召唤师技能失败：{{reason}}
     setRunesFailedMessage: 设置符文配法失败：{{reason}}
-    spellsSet: '[$t(common:appName)] 已设置召唤师技能: {{spell1}} | {{spell2}}'
-    runesSet: '[$t(common:appName)] 已{{action}}符文配法: {{name}}'
+    spellsSet: "[$t(common:appName)] 已设置召唤师技能: {{spell1}} | {{spell2}}"
+    runesSet: "[$t(common:appName)] 已{{action}}符文配法: {{name}}"
     sessionChampions:
       title: 本局英雄
   arammeta:
@@ -153,10 +153,10 @@ opgg:
     source: arammeta 历史统计
     version: 数据版本 {{version}}
     liftValue: 提升 {{value}}
-    slotLevel: '{{level}} 级'
+    slotLevel: "{{level}} 级"
   resg:
     title: RESG 大乱斗攻略
-    rankOf: '排名 {{rank}} / {{total}}'
+    rankOf: "排名 {{rank}} / {{total}}"
     winRateRank: 胜率排名
     version: 数据版本 {{version}}
     aramOnly: 仅大乱斗 · 实时单英雄查询
@@ -174,17 +174,17 @@ opgg:
     hideLinkedBuilds: 收起关联出装
     winRateValue: 胜率 {{rate}}%
     pickRateValue: 选取率 {{rate}}%
-    wins: '{{wins}} 胜'
-    augmentCount: '{{count}} 个海克斯'
-    itemCount: '{{count}} 件装备'
+    wins: "{{wins}} 胜"
+    augmentCount: "{{count}} 个海克斯"
+    itemCount: "{{count}} 件装备"
     showAll: 展开全部
     showLess: 收起
-    starterGroup: 'RESG 起始装备 #{{index}}'
-    bootsGroup: 'RESG 鞋子 #{{index}}'
-    skillOrderGroup: 'RESG 技能点法 #{{index}} {{order}}'
-    itemComboGroup: 'RESG {{size}} 件装 #{{index}}'
-    buildStats: '{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%'
-    buildStatsWithoutPickRate: '{{play}} 场 · 胜率 {{winRate}}%'
+    starterGroup: "RESG 起始装备 #{{index}}"
+    bootsGroup: "RESG 鞋子 #{{index}}"
+    skillOrderGroup: "RESG 技能点法 #{{index}} {{order}}"
+    itemComboGroup: "RESG {{size}} 件装 #{{index}}"
+    buildStats: "{{play}} 场 · 胜率 {{winRate}}% · 选取率 {{pickRate}}%"
+    buildStatsWithoutPickRate: "{{play}} 场 · 胜率 {{winRate}}%"
   mayhemAssistant:
     title: 海克斯选择助手
     level: 当前 {{level}} 级
@@ -194,18 +194,19 @@ opgg:
     switchChampion: 切换到本局英雄
     modeMismatch: 当前模式不是海克斯乱斗，无法给出海克斯统计
     switchMode: 切换到海克斯乱斗
-    roundReached: '{{level}} 级海克斯选择已出现'
-    roundLocked: '到达 {{level}} 级后开放'
+    roundReached: "{{level}} 级海克斯选择已出现"
+    roundLocked: "到达 {{level}} 级后开放"
     offered: 本轮可选
     offeredPlaceholder: 录入游戏中出现的三个海克斯（可搜索名称）
     candidatesFromOffered: 按录入的候选给出统计与组合推荐
     candidatesFromRanking: 尚未录入候选，以下为当前数据源的推荐榜单
     pick: 选择
     picked: 已选择
-    comboStats: '组合胜率 {{winRate}}% · {{play}} 场'
+    comboStats: "组合胜率 {{winRate}}% · {{play}} 场"
+    itemProgression: 出装推进
     noData: 当前数据源没有该英雄的海克斯统计
     noStats: 暂无统计
-    waiting: '进入 {{level}} 级后开始本轮海克斯选择'
+    waiting: "进入 {{level}} 级后开始本轮海克斯选择"
   champion:
     boots: 鞋子
     adorableRabi: 兔兔好可爱
@@ -220,7 +221,7 @@ opgg:
     counterC: 劣势
     allC: 所有
     empty: 暂无数据
-    times: '{{times}} 场'
+    times: "{{times}} 场"
     showAll: 展示全部
     spells: 召唤师技能
     apply: 应用
@@ -256,12 +257,12 @@ opgg:
       shield_amount: 护盾值
       energy_regen: 能量回复
       area_of_effect_damage: AoE 伤害
-    writeToDisk: '[$t(common:appName)] 已写入到装备方案：{{name}}'
+    writeToDisk: "[$t(common:appName)] 已写入到装备方案：{{name}}"
     writtenToDisk: 已写入到文件中
     writeFileFailedMessage: 写入文件失败 {{reason}}
     bootsDesc: 鞋子 (按出场率排序)
     prismItemsDesc: 棱彩阶装备 (按出场率排序)
     itemsDesc: 装备 (按出场率排序)
-    coreItem: '核心装备 #{{index}} | 出场率 {{pickRate}}%'
-    starterItem: '初始装备 #{{index}} | 出场率 {{pickRate}}%'
+    coreItem: "核心装备 #{{index}} | 出场率 {{pickRate}}%"
+    starterItem: "初始装备 #{{index}} | 出场率 {{pickRate}}%"
     cancel: 取消

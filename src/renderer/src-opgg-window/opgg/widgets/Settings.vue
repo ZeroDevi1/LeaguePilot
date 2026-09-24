@@ -33,7 +33,7 @@
         <NSelect
           size="small"
           class="w-28!"
-          :value="preferredSource"
+          :value="defaultSource"
           :options="sourceOptions"
           :consistent-menu-width="false"
           @update:value="changeSource"
@@ -117,13 +117,19 @@ const wm = useInstance(WindowManagerRenderer)
 
 const { flashPosition, preferredSource, changeSource, setFlashPosition } = useOpgg()
 
-const sourceOptions = computed(() =>
-  (['opgg', 'qq101'] as const).map((source) => ({
+/** 设置项展示的默认源：勾选 RESG 时优先于 OP.GG / 101。 */
+const defaultSource = computed(() =>
+  os.frontendSettings.preferResg ? 'resg' : preferredSource.value
+)
+
+const sourceOptions = computed(() => [
+  ...(['opgg', 'qq101'] as const).map((source) => ({
     label: t(`opgg.filters.sources.${source}`),
     value: source,
     disabled: !championDataStore.availability.sources[source].enabled
-  }))
-)
+  })),
+  { label: t('opgg.filters.sources.resg'), value: 'resg', disabled: false }
+])
 
 const emits = defineEmits<{
   close: []

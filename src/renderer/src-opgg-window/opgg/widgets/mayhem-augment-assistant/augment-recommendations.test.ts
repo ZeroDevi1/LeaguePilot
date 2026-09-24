@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildAugmentCandidates,
   findCombosContaining,
+  findCombosForCandidate,
   wilsonLowerBound
 } from './augment-recommendations'
 
@@ -59,6 +60,16 @@ describe('findCombosContaining', () => {
   })
 })
 
+describe('findCombosForCandidate', () => {
+  it('keeps combos among the other picks when one picked augment is not in any hot combo', () => {
+    const combos = [combo([102, 103], 0.66), combo([101, 103], 0.57), combo([101, 102], 0.62)]
+
+    expect(findCombosForCandidate(combos, [104, 102], 103).map((item) => item.augmentIds)).toEqual([
+      [102, 103]
+    ])
+  })
+})
+
 describe('wilsonLowerBound', () => {
   it('ranks a large sample with lower win rate above a tiny sample with higher win rate', () => {
     expect(wilsonLowerBound(0.6, 3000)).toBeGreaterThan(wilsonLowerBound(0.8, 10))
@@ -82,6 +93,33 @@ describe('buildAugmentCandidates', () => {
     expect(result[0].combos.map((item) => item.augmentIds)).toEqual([[102, 103]])
     expect(result[0].offered).toBe(true)
     expect(result[0].stats.winRate).toBe(0.5)
+    expect(result[0].itemProgression).toEqual([])
+  })
+
+  it('keeps the champion item path for an augment that is not in any hot combo', () => {
+    const itemBuild = {
+      rank: 1,
+      ids: [3001, 3002],
+      names: ['A', 'B'],
+      play: 800,
+      winRate: 0.54,
+      pickRate: 0.2
+    }
+    const result = buildAugmentCandidates({
+      offeredAugmentIds: [104, 103],
+      pickedAugmentIds: [102],
+      resgGuide: resgGuide({
+        augmentCombos: [combo([102, 103], 0.66)],
+        itemBuilds: [itemBuild]
+      }),
+      kiwiAugments: null
+    })
+
+    expect(result.find((item) => item.augmentId === 104)?.combos).toEqual([])
+    expect(result.find((item) => item.augmentId === 104)?.itemProgression).toEqual([itemBuild])
+    expect(
+      result.find((item) => item.augmentId === 103)?.combos.map((item) => item.augmentIds)
+    ).toEqual([[102, 103]])
   })
 
   it('suggests from the source ranking and excludes already picked augments when nothing is offered', () => {

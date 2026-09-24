@@ -18,8 +18,8 @@ opgg:
     rankTier: Rank Tier
     position: Position
     version: Version
-    sourceActive: 'Current source: {{source}}'
-    sourceFallback: 'Preferred source unavailable; switched to {{source}}'
+    sourceActive: "Current source: {{source}}"
+    sourceFallback: "Preferred source unavailable; switched to {{source}}"
     sources:
       opgg: OP.GG
       qq101: 101 (CN)
@@ -28,7 +28,7 @@ opgg:
       ranked: Ranked
       classic: Classic
       aram: ARAM
-      aram_mayhem: 'ARAM: Mayhem'
+      aram_mayhem: "ARAM: Mayhem"
       arena: Arena
       nexus_blitz: Nexus Blitz
       urf: URF
@@ -131,21 +131,21 @@ opgg:
         label: Auto Apply Summoner Spells
         description: Automatically apply the highest pick rate summoner spells if the champion data matches the current mode. Only effective when the champion data window is enabled and visible
       kiwiGuideProvider:
-        label: 'Default ARAM: Mayhem Provider'
-        description: 'Use this provider by default when champion select starts for ARAM: Mayhem'
+        label: "Default ARAM: Mayhem Provider"
+        description: "Use this provider by default when champion select starts for ARAM: Mayhem"
         options:
           opgg: Current source
           resg: RESG
       autoApplyItems:
         label: Auto Apply Item Builds
         description: Automatically apply item builds if the champion data matches the current mode. Only effective when the champion data window is enabled and visible
-    success: 'Request sent: {{reason}}'
+    success: "Request sent: {{reason}}"
     summonerSpells: Summoner Spells
     runes: Rune Builds
-    setSpellsFailedMessage: 'Failed to set summoner spells: {{reason}}'
-    setRunesFailedMessage: 'Failed to set rune builds: {{reason}}'
-    spellsSet: '[$t(common:appName)] Summoner spells set: {{spell1}} | {{spell2}}'
-    runesSet: '[$t(common:appName)] {{action}} rune build: {{name}}'
+    setSpellsFailedMessage: "Failed to set summoner spells: {{reason}}"
+    setRunesFailedMessage: "Failed to set rune builds: {{reason}}"
+    spellsSet: "[$t(common:appName)] Summoner spells set: {{spell1}} | {{spell2}}"
+    runesSet: "[$t(common:appName)] {{action}} rune build: {{name}}"
     sessionChampions:
       title: Session Champions
   arammeta:
@@ -153,15 +153,15 @@ opgg:
     source: arammeta historical stats
     version: Data version {{version}}
     liftValue: Lift {{value}}
-    slotLevel: 'Lv. {{level}}'
+    slotLevel: "Lv. {{level}}"
   resg:
     title: RESG ARAM Guide
-    rankOf: 'Rank {{rank}} / {{total}}'
+    rankOf: "Rank {{rank}} / {{total}}"
     winRateRank: WR rank
     version: Data version {{version}}
     aramOnly: ARAM only · live single-champion query
     importItems: Import RESG Items
-    loadFailed: 'RESG data is unavailable: {{reason}}'
+    loadFailed: "RESG data is unavailable: {{reason}}"
     linkedItems: Augment-linked Items
     augmentCombos: Augment Combination Stats
     augmentComboSizeLabel: Augment combination size
@@ -174,43 +174,44 @@ opgg:
     hideLinkedBuilds: Hide linked builds
     winRateValue: Win {{rate}}%
     pickRateValue: Pick {{rate}}%
-    wins_one: '{{wins}} win'
-    wins_other: '{{wins}} wins'
-    augmentCount_one: '{{count}} augment'
-    augmentCount_other: '{{count}} augments'
-    itemCount_one: '{{count}} item'
-    itemCount_other: '{{count}} items'
+    wins_one: "{{wins}} win"
+    wins_other: "{{wins}} wins"
+    augmentCount_one: "{{count}} augment"
+    augmentCount_other: "{{count}} augments"
+    itemCount_one: "{{count}} item"
+    itemCount_other: "{{count}} items"
     showAll: Show all
     showLess: Show less
-    starterGroup: 'RESG Starting Items #{{index}}'
-    bootsGroup: 'RESG Boots #{{index}}'
-    skillOrderGroup: 'RESG Skill Order #{{index}} {{order}}'
-    itemComboGroup: 'RESG {{size}}-item Build #{{index}}'
-    buildStats_one: '{{play}} game · {{winRate}}% win rate · {{pickRate}}% pick rate'
-    buildStats_other: '{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate'
-    buildStatsWithoutPickRate_one: '{{play}} game · {{winRate}}% win rate'
-    buildStatsWithoutPickRate_other: '{{play}} games · {{winRate}}% win rate'
+    starterGroup: "RESG Starting Items #{{index}}"
+    bootsGroup: "RESG Boots #{{index}}"
+    skillOrderGroup: "RESG Skill Order #{{index}} {{order}}"
+    itemComboGroup: "RESG {{size}}-item Build #{{index}}"
+    buildStats_one: "{{play}} game · {{winRate}}% win rate · {{pickRate}}% pick rate"
+    buildStats_other: "{{play}} games · {{winRate}}% win rate · {{pickRate}}% pick rate"
+    buildStatsWithoutPickRate_one: "{{play}} game · {{winRate}}% win rate"
+    buildStatsWithoutPickRate_other: "{{play}} games · {{winRate}}% win rate"
   mayhemAssistant:
     title: Augment Assistant
     level: Level {{level}}
-    source: 'Source: {{source}}'
+    source: "Source: {{source}}"
     clear: Clear entries
-    championMismatch: 'This game uses {{champion}}, which is not the champion shown here'
+    championMismatch: "This game uses {{champion}}, which is not the champion shown here"
     switchChampion: Show this game's champion
-    modeMismatch: 'Current mode is not ARAM: Mayhem, no augment stats available'
-    switchMode: 'Switch to ARAM: Mayhem'
-    roundReached: 'Augment choice at level {{level}} has appeared'
-    roundLocked: 'Unlocks at level {{level}}'
+    modeMismatch: "Current mode is not ARAM: Mayhem, no augment stats available"
+    switchMode: "Switch to ARAM: Mayhem"
+    roundReached: "Augment choice at level {{level}} has appeared"
+    roundLocked: "Unlocks at level {{level}}"
     offered: Offered
     offeredPlaceholder: Enter the three augments offered in game (search by name)
     candidatesFromOffered: Stats and combo suggestions for the entered candidates
     candidatesFromRanking: No candidates entered; showing the current source ranking
     pick: Pick
     picked: Picked
-    comboStats: 'Combo WR {{winRate}}% · {{play}} games'
+    comboStats: "Combo WR {{winRate}}% · {{play}} games"
+    itemProgression: Item path
     noData: The current source has no augment stats for this champion
     noStats: No stats
-    waiting: 'The next augment choice appears at level {{level}}'
+    waiting: "The next augment choice appears at level {{level}}"
   champion:
     boots: Boots
     adorableRabi: Kawaii Bunny
@@ -225,7 +226,7 @@ opgg:
     counterC: Counter
     allC: All
     empty: No Data Available
-    times: '{{times}} Games'
+    times: "{{times}} Games"
     showAll: Show All
     spells: Summoner Spells
     apply: Apply
@@ -261,12 +262,12 @@ opgg:
       shield_amount: Shield Amount
       energy_regen: Energy Regen
       area_of_effect_damage: AoE Damage
-    writeToDisk: '[$t(common:appName)] Written to item build: {{name}}'
+    writeToDisk: "[$t(common:appName)] Written to item build: {{name}}"
     writtenToDisk: Successfully written to file
     writeFileFailedMessage: Failed to write file {{reason}}
     bootsDesc: Boots (sorted by pick rate)
     prismItemsDesc: Prism Tier Items (sorted by pick rate)
     itemsDesc: Items (sorted by pick rate)
-    coreItem: 'Core Item #{{index}} | Pick Rate {{pickRate}}%'
-    starterItem: 'Starting Item #{{index}} | Pick Rate {{pickRate}}%'
+    coreItem: "Core Item #{{index}} | Pick Rate {{pickRate}}%"
+    starterItem: "Starting Item #{{index}} | Pick Rate {{pickRate}}%"
     cancel: Cancel

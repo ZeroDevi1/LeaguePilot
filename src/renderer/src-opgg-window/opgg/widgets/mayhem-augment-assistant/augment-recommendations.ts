@@ -1,5 +1,5 @@
 import type { OpggAramMayhemChampionAugmentsResponse } from '@shared/types/opgg'
-import type { ResgChampionGuide, ResgGuideAugmentCombo } from '@shared/types/resg'
+import type { ResgChampionGuide, ResgGuideAugmentCombo, ResgGuideBuild } from '@shared/types/resg'
 
 /** 单个候选强化在当前数据源下的统计。 */
 export interface AugmentCandidateStats {
@@ -30,6 +30,11 @@ export interface AugmentCandidate {
    * 只在 RESG 数据可用时非空。
    */
   combos: ResgGuideAugmentCombo[]
+  /**
+   * 该候选没有热门组合时仍可沿用的出装推进。
+   * 来自英雄的核心装备路径，不依赖它是否进入某个组合。
+   */
+  itemProgression: ResgGuideBuild[]
   /** 用于排序的综合分；不同数据源含义不同，只在同一来源内比较。 */
   score: number
 }
@@ -110,10 +115,60 @@ export function findCombosContaining(
 }
 
 /**
+ * 为某个候选找出仍能成立的组合。
+ *
+ * 已选里若有强化进不了任何包含该候选的热门组合，就不再拿它当必选条件；
+ * 其余已选仍要同时出现在组合里。这样一次一般的选择不会挡住其他强化继续搭配。
+ * 若这些能搭配的已选无法同时出现在同一条组合中，则分别保留各自能成立的组合。
+ *
+ * @param combos RESG 组合列表。
+ * @param pickedAugmentIds 之前轮次已经选择的强化。
+ * @param candidateId 本轮正在评估的候选强化。
+ * @returns 按胜率置信下界降序的组合；候选本身不在任何组合中时返回空数组。
+ */
+export function findCombosForCandidate(
+  combos: ResgGuideAugmentCombo[],
+  pickedAugmentIds: number[],
+  candidateId: number
+): ResgGuideAugmentCombo[] {
+  const withCandidate = combos.filter(
+    (combo) => combo.augmentIds.length >= 2 && combo.augmentIds.includes(candidateId)
+  )
+  const viablePicks = pickedAugmentIds.filter((id) =>
+    withCandidate.some((combo) => combo.augmentIds.includes(id))
+  )
+  const matched = findCombosContaining(withCandidate, [candidateId, ...viablePicks])
+  if (matched.length > 0 || viablePicks.length === 0) {
+    return matched
+  }
+
+  const viable = new Set(viablePicks)
+  return withCandidate
+    .filter((combo) => combo.augmentIds.some((id) => viable.has(id)))
+    .toSorted(
+      (left, right) =>
+        overlapCount(right.augmentIds, viable) - overlapCount(left.augmentIds, viable) ||
+        wilsonLowerBound(right.winRate, right.play) - wilsonLowerBound(left.winRate, left.play) ||
+        right.play - left.play
+    )
+}
+
+/**
+ * 统计组合里覆盖了多少个仍能搭配的已选强化。
+ *
+ * @param augmentIds 组合内的强化 ID。
+ * @param viablePicks 与当前候选存在共同组合的已选强化。
+ * @returns 覆盖数量。
+ */
+function overlapCount(augmentIds: number[], viablePicks: Set<number>): number {
+  return augmentIds.filter((id) => viablePicks.has(id)).length
+}
+
+/**
  * 为一轮强化选择生成候选列表及其统计。
  *
  * 有录入候选时只评估这些候选；否则按当前数据源榜单补充推荐（排除已选）。
- * RESG 通道额外给出包含“已选 + 候选”的组合，作为多海克斯搭配推荐。
+ * RESG 通道给出与该候选仍能成立的组合；进不了热门组合时保留英雄出装推进。
  *
  * @param input 候选、已选和两种数据源的数据。
  * @returns 按综合分降序排列的候选列表。
@@ -161,8 +216,10 @@ export function buildAugmentCandidates(input: BuildAugmentCandidatesInput): Augm
     const resg = resgStats.get(augmentId)
     const kiwi = kiwiStats.get(augmentId)
     const combos = resgGuide
-      ? findCombosContaining(resgGuide.augmentCombos, [...pickedAugmentIds, augmentId])
+      ? findCombosForCandidate(resgGuide.augmentCombos, pickedAugmentIds, augmentId)
       : []
+    const itemProgression =
+      resgGuide && combos.every((combo) => combo.builds.length === 0) ? resgGuide.itemBuilds : []
 
     const stats: AugmentCandidateStats = {
       ...EMPTY_STATS,
@@ -187,7 +244,7 @@ export function buildAugmentCandidates(input: BuildAugmentCandidatesInput): Augm
         ? 100 - stats.tier * 10 + (stats.performance ?? 0) / 1000
         : (stats.performance ?? -1)
 
-    return { augmentId, offered, stats, combos, score }
+    return { augmentId, offered, stats, combos, itemProgression, score }
   })
 
   // 综合分相同时退回单体胜率 / 表现分，保证排序稳定且可解释。
