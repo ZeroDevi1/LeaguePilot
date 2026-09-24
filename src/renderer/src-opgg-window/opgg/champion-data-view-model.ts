@@ -308,17 +308,21 @@ export function toOpggMayhemAugmentsViewModel(
   mode: ChampionDataMode
 ): OpggAramMayhemChampionAugmentsResponse | null {
   if (mode !== 'aram_mayhem' || !details.sections.augments) return null
+  // 101 只提供 0~1 的比率，换算成百分数后会带浮点尾数，这里统一保留两位小数供直接展示。
+  const round2 = (value: number) => Math.round(value * 100) / 100
   return {
     data: details.sections.augments.map((item) => ({
       id: item.augmentId,
       tier: item.tier,
-      performance:
+      performance: round2(
         item.performanceScore ??
-        (item.performance.winRate === null ? 0 : item.performance.winRate * 100),
-      popular:
+          (item.performance.winRate === null ? 0 : item.performance.winRate * 100)
+      ),
+      popular: round2(
         details.metadata.source === 'qq101'
           ? (item.popularity ?? item.performance.pickRate ?? 0) * 100
           : (item.popularity ?? item.performance.pickRate ?? 0)
+      )
     }))
   }
 }
