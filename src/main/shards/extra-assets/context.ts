@@ -1,9 +1,7 @@
 import type { ArammetaApi } from '@shared/data-sources/arammeta'
 import type { GtimgApi } from '@shared/data-sources/gtimg'
 import type { OpggHttpApiAxiosHelper } from '@shared/http-api-axios-helper/opgg'
-import type { AxiosInstance } from 'axios'
 
-import type { AppCommonMain } from '../app-common'
 import type { AkariLogger } from '../logger-factory'
 import type { MobxUtilsMain } from '../mobx-utils'
 import type { ExtraAssetsStateArammeta, ExtraAssetsStateGtimg, ExtraAssetsStateOpgg } from './state'
@@ -16,7 +14,6 @@ export const ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL = 3 * 60 * 60 * 1000
 
 export interface ExtraAssetsMainContext {
   namespace: string
-  appCommon: AppCommonMain
   logger: AkariLogger
   mobxUtils: MobxUtilsMain
   gtimg: ExtraAssetsStateGtimg
@@ -24,6 +21,5 @@ export interface ExtraAssetsMainContext {
   arammeta: ExtraAssetsStateArammeta
   gtimgApi: GtimgApi
   opggApi: OpggHttpApiAxiosHelper
-  opggHttpClient: AxiosInstance
   arammetaApi: ArammetaApi
 }

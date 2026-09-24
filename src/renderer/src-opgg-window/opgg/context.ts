@@ -3,7 +3,22 @@ import { useOpggStore } from '@opgg-window/shards/opgg/store'
 import { useStableComputed } from '@renderer-shared/composables/useStableComputed'
 import { useInstance } from '@renderer-shared/shards'
 import { useAutoChampConfigStore } from '@renderer-shared/shards/auto-champ-config/store'
+import { ChampionDataRenderer } from '@renderer-shared/shards/champion-data'
+import { useChampionDataStore } from '@renderer-shared/shards/champion-data/store'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
+import type {
+  ChampionDataFallbackReason,
+  ChampionDataLoadResult,
+  ChampionDataMode,
+  ChampionDataOverview,
+  ChampionDataPosition,
+  ChampionDataQuery,
+  ChampionDataSourceId
+} from '@shared/data-adapter/champion-data'
+import {
+  CHAMPION_DATA_CAPABILITIES,
+  getChampionDataCapability
+} from '@shared/data-adapter/champion-data'
 import { selectLatestResgVersion } from '@shared/data-adapter/resg'
 import {
   ModeType,
@@ -23,8 +38,23 @@ import { QueueKeeper, isAbortError } from '@shared/utils/queue-keeper'
 import { watchDebounced } from '@vueuse/core'
 import { useTranslation } from 'i18next-vue'
 import { useMessage } from 'naive-ui'
-import { InjectionKey, Ref, inject, onMounted, provide, ref, shallowRef, watch } from 'vue'
+import {
+  InjectionKey,
+  Ref,
+  computed,
+  inject,
+  onMounted,
+  provide,
+  ref,
+  shallowRef,
+  watch
+} from 'vue'
 
+import {
+  toOpggChampionDetailsViewModel,
+  toOpggChampionOverviewViewModel,
+  toOpggMayhemAugmentsViewModel
+} from './champion-data-view-model'
 import { hasItemsSets, useLoadout } from './utils/loadout'
 import { createResgItemSet } from './utils/resg-item-set'
 
@@ -37,18 +67,81 @@ const AUTO_CHAMP_CONFIG_GAME_MODE_MAP: Record<string, string> = {
   ULTBOOK: 'ultbook'
 }
 
+const OPGG_TO_UNIFIED_POSITION: Readonly<Record<string, ChampionDataPosition>> = {
+  all: 'all',
+  top: 'top',
+  jungle: 'jungle',
+  mid: 'middle',
+  adc: 'bottom',
+  support: 'utility',
+  none: 'none'
+}
+
+const UNIFIED_TO_OPGG_POSITION: Readonly<Record<ChampionDataPosition, PositionType>> = {
+  all: 'all',
+  top: 'top',
+  jungle: 'jungle',
+  middle: 'mid',
+  bottom: 'adc',
+  utility: 'support',
+  none: 'none'
+}
+
+const OPGG_TO_CHAMPION_DATA_MODE: Readonly<Record<string, ChampionDataMode>> = {
+  ranked: 'ranked',
+  classic: 'classic',
+  aram: 'aram',
+  aram_mayhem: 'aram_mayhem',
+  arena: 'arena',
+  nexus_blitz: 'nexus_blitz',
+  urf: 'urf'
+}
+
+function toChampionDataMode(mode: ModeType): ChampionDataMode {
+  const unifiedMode = OPGG_TO_CHAMPION_DATA_MODE[mode]
+  if (unifiedMode) return unifiedMode
+  throw new Error(`Unsupported champion data mode: ${mode}`)
+}
+
+function toChampionDataPosition(position: PositionType) {
+  return OPGG_TO_UNIFIED_POSITION[position] ?? 'none'
+}
+
+function resolveSupportedMode(source: ChampionDataSourceId, requestedMode: ModeType): ModeType {
+  const supportedModes = CHAMPION_DATA_CAPABILITIES[source]
+  return supportedModes.some((item) => item.mode === requestedMode)
+    ? requestedMode
+    : (supportedModes[0]?.mode ?? 'ranked')
+}
+
 export const OpggContextKey: InjectionKey<OpggContext> = Symbol('OpggContext')
 
+/**
+ * 攻略窗口的数据通道。
+ *
+ * - `opgg`：走 main 进程统一的 champion-data 服务，具体数据源由 `preferredSource`（OP.GG / 101）决定。
+ * - `resg`：走 renderer 侧的 RESG 代理，仅覆盖大乱斗（含海克斯大乱斗），状态与 champion-data 隔离。
+ */
 export type GuideProvider = 'opgg' | 'resg'
+
+/** 顶部数据源选择器可选的值：champion-data 的各来源加上 RESG。 */
+export type GuideSource = ChampionDataSourceId | 'resg'
+
+/** RESG 数据支持的展示模式；RESG 统计来自海克斯大乱斗对局。 */
+export const RESG_MODE: ModeType = 'aram_mayhem'
 
 export type OpggContext = {
   currentTab: Ref<'champions' | 'champion'>
+  /** 当前数据通道。 */
   provider: Ref<GuideProvider>
+  /** 顶部选择器展示的当前数据源；`provider === 'resg'` 时为 `resg`，否则为 champion-data 首选源。 */
+  activeSource: Readonly<Ref<GuideSource>>
 
   setTab: (tab: 'champions' | 'champion', championId?: number) => void
 
   flashPosition: Ref<'auto' | 'd' | 'f'>
 
+  preferredSource: Readonly<Ref<ChampionDataSourceId>>
   championId: Ref<number | null>
   mode: Ref<ModeType>
   position: Ref<PositionType>
@@ -59,20 +152,26 @@ export type OpggContext = {
 
   versions: Ref<string[]>
   champions: Ref<OpggChampionsResponse | null>
+  overview: Ref<ChampionDataOverview | null>
   champion: Ref<OpggChampionBuildResponse | null>
 
   kiwiAugments: Ref<OpggAramMayhemChampionAugmentsResponse | null>
+
   resgVersions: Ref<ResgVersionItem[]>
   resgVersion: Ref<string | null>
   resgChampions: Ref<ResgChampionIndexResponse | null>
   resgGuide: Ref<ResgChampionGuide | null>
   resgError: Ref<string | null>
 
+  effectiveSource: Ref<ChampionDataSourceId | null>
+  fallbackReason: Ref<ChampionDataFallbackReason | null>
+  isDataUnavailable: Ref<boolean>
+
   isLoading: Ref<boolean>
 
   setFlashPosition: (flashPosition: 'auto' | 'd' | 'f') => void
 
-  changeProvider: (provider: GuideProvider) => Promise<void>
+  changeSource: (source: GuideSource) => Promise<void>
   changeMode: (mode: ModeType) => Promise<void>
   changePosition: (position: PositionType) => Promise<void>
   changeRegion: (region: RegionType) => Promise<void>
@@ -98,6 +197,12 @@ type AutoChampConfigCheckResult = {
 }
 
 type AutoChampConfigCheckFn = (options: AutoChampConfigCheckOptions) => AutoChampConfigCheckResult
+
+class ChampionDataUnavailableError extends Error {
+  constructor(readonly hasRequestFailure: boolean) {
+    super('Champion data is unavailable')
+  }
+}
 
 function useHasAutoChampConfig(): AutoChampConfigCheckFn {
   const acs = useAutoChampConfigStore()
@@ -144,9 +249,11 @@ function useHasAutoChampConfig(): AutoChampConfigCheckFn {
 
 export function provideOpgg() {
   const og = useInstance(OpggRenderer)
+  const championData = useInstance(ChampionDataRenderer)
 
   const lcs = useLeagueClientStore()
   const ogs = useOpggStore()
+  const championDataStore = useChampionDataStore()
   const resolveAutoChampConfig = useHasAutoChampConfig()
 
   const message = useMessage()
@@ -164,66 +271,120 @@ export function provideOpgg() {
     flashPosition.value = flashPosition0
   }
 
-  const mode = ref<ModeType>(ogs.savedPreferences.mode)
-  const position = ref<PositionType>(ogs.savedPreferences.position)
-  const region = ref<RegionType>(ogs.savedPreferences.region)
-  const tier = ref<TierType>(ogs.savedPreferences.tier)
+  const preferredSource = computed(() => championDataStore.settings.preferredSource)
+  const activeSource = computed<GuideSource>(() =>
+    provider.value === 'resg' ? 'resg' : preferredSource.value
+  )
+  const savedMode = championDataStore.settings.preferences.mode
+  const mode = ref<ModeType>(resolveSupportedMode(preferredSource.value, savedMode))
+  const position = ref<PositionType>(
+    UNIFIED_TO_OPGG_POSITION[championDataStore.settings.preferences.position]
+  )
+  const region = ref<RegionType>(championDataStore.settings.preferences.region)
+  const tier = ref<TierType>(String(championDataStore.settings.preferences.tier))
   const version = ref<string | null>(null)
 
   const championId = ref<number | null>(null)
   const versions = shallowRef<string[]>([])
   const champions = shallowRef<OpggChampionsResponse | null>(null)
+  const overview = shallowRef<ChampionDataOverview | null>(null)
   const champion = shallowRef<OpggChampionBuildResponse | null>(null)
 
-  // 目前 op.gg 榜单依然采用 aram 总榜，但额外加了 Kiwi 模式的 augments 榜单
   const kiwiAugments = shallowRef<OpggAramMayhemChampionAugmentsResponse | null>(null)
-  // RESG 仅提供大乱斗数据；其版本、列表和详情与 OP.GG 状态隔离。
+  // RESG 仅提供大乱斗数据；其版本、列表和详情与 champion-data 状态隔离。
   const resgVersions = shallowRef<ResgVersionItem[]>([])
   const resgVersion = ref<string | null>(null)
   const resgChampions = shallowRef<ResgChampionIndexResponse | null>(null)
   const resgGuide = shallowRef<ResgChampionGuide | null>(null)
   const resgError = ref<string | null>(null)
+  const effectiveSource = ref<ChampionDataSourceId | null>(null)
+  const fallbackReason = ref<ChampionDataFallbackReason | null>(null)
+  const isDataUnavailable = ref(false)
 
   const queueKeeper = new QueueKeeper([{ id: 'default' }, { id: 'resg' }])
 
   const isLoading = ref(false)
   let updateGeneration = 0
+  let loadedPatchContext: string | null = null
+  let sourceChangeInProgress = false
+
+  const unwrapResult = <T>(result: ChampionDataLoadResult<T>, generation: number) => {
+    if (generation === updateGeneration) {
+      effectiveSource.value = result.effectiveSource
+      fallbackReason.value = result.fallbackReason
+    }
+    if (result.status === 'unavailable') {
+      isDataUnavailable.value = true
+      champions.value = null
+      overview.value = null
+      champion.value = null
+      kiwiAugments.value = null
+      throw new ChampionDataUnavailableError(
+        result.attempts.some((attempt) => attempt.outcome === 'failed')
+      )
+    }
+    isDataUnavailable.value = false
+    return result.data
+  }
 
   const ensureVersionFor = async (
+    source: ChampionDataSourceId,
     region0: RegionType,
     mode0: ModeType,
-    generation: number,
     opts: {
       reload: boolean
       preferredVersion?: string | null
-    }
-  ): Promise<{ version: string; versions: string[] } | null> => {
+    },
+    generation: number
+  ): Promise<string | null> => {
     const preferred = opts.preferredVersion ?? version.value
-    let nextVersions = versions.value
+    const capability = getChampionDataCapability(source, toChampionDataMode(mode0))
+    const patchContext = `${source}:${region0}:${mode0}`
 
-    if (opts.reload || !version.value || nextVersions.length === 0) {
-      const {
-        data: { data: versions0 }
-      } = await queueKeeper.add(
-        'default',
-        `opgg-load-versions:${generation}`,
-        ({ signal }) => og.api.getVersions(region0, mode0, { signal }),
-        { tags: ['opgg-group'] }
-      )
-
-      nextVersions = versions0
-    }
-
-    if (nextVersions.length === 0) {
+    if (!capability?.filters.includes('patch')) {
+      versions.value = []
+      loadedPatchContext = patchContext
       return null
     }
 
-    const nextVersion = preferred && nextVersions.includes(preferred) ? preferred : nextVersions[0]
+    if (opts.reload || loadedPatchContext !== patchContext) {
+      const result = await queueKeeper.add(
+        'default',
+        'champion-data-load-patches',
+        ({ signal }) =>
+          championData.loadPatches(
+            {
+              source,
+              mode: toChampionDataMode(mode0),
+              ...(capability.filters.includes('region') ? { region: region0 } : {})
+            },
+            { signal }
+          ),
+        { tags: ['opgg-group'] }
+      )
 
-    return { version: nextVersion, versions: nextVersions }
+      const patches = unwrapResult(result, generation)
+      if (generation !== updateGeneration) return null
+      versions.value = patches
+      loadedPatchContext = patchContext
+    }
+
+    if (versions.value.length === 0) {
+      return null
+    }
+
+    let nextVersion =
+      preferred && versions.value.includes(preferred) ? preferred : versions.value[0]
+
+    if (!versions.value.includes(nextVersion)) {
+      nextVersion = versions.value[0]
+    }
+
+    return nextVersion
   }
 
   const update = async (opts: {
+    source?: ChampionDataSourceId
     region?: RegionType
     mode?: ModeType
     tier?: TierType
@@ -231,124 +392,162 @@ export function provideOpgg() {
     championId?: number
     position?: PositionType
     force?: boolean
-  }): Promise<boolean> => {
+  }) => {
     const generation = ++updateGeneration
     queueKeeper.cancelAll()
+
     isLoading.value = true
 
     try {
-      const versionResult = await ensureVersionFor(
-        opts.region ?? region.value,
-        opts.mode ?? mode.value,
-        generation,
+      const targetSource = opts.source ?? preferredSource.value
+      const targetMode = opts.mode ?? mode.value
+      const targetRegion = opts.region ?? region.value
+      const targetTier = opts.tier ?? tier.value
+      let targetChampionId = opts.championId ?? championId.value
+      let targetPosition = opts.position ?? position.value
+      const capability = getChampionDataCapability(targetSource, toChampionDataMode(targetMode))
+
+      if (!capability) {
+        effectiveSource.value = null
+        fallbackReason.value = 'mode-unsupported'
+        isDataUnavailable.value = true
+        champions.value = null
+        overview.value = null
+        champion.value = null
+        kiwiAugments.value = null
+        return false
+      }
+
+      const nextVersion = await ensureVersionFor(
+        targetSource,
+        targetRegion,
+        targetMode,
         {
           // version 和 mode 需要刷新 version
           // 但也没那么强制，但 mode 变化必须刷新 version
           reload: opts.force || opts.mode !== undefined || opts.version !== undefined,
           preferredVersion: opts.version ?? version.value
-        }
+        },
+        generation
       )
 
-      if (!versionResult) {
-        if (generation === updateGeneration && provider.value === 'opgg') {
-          message.warning(() => t('opgg.view.noVersionFound'))
-        }
+      if (generation !== updateGeneration) return false
+
+      if (capability.filters.includes('patch') && !nextVersion) {
+        message.warning(() => t('opgg.view.noVersionFound'))
         return false
       }
 
-      const nextVersion = versionResult.version
-      const targetMode = opts.mode ?? mode.value
-      const targetRegion = opts.region ?? region.value
-      const targetTier = opts.tier ?? tier.value
-      const targetChampionId = opts.championId ?? championId.value
-      let targetPosition = opts.position ?? position.value
-
-      // 硬性限制：非 ranked 模式必须为 none
-      // ranked 模式下不能为 none
-      if (targetMode === 'ranked') {
+      // 不支持位置筛选的模式会在下面的 query 中直接忽略 position。
+      // 这里保留用户上一个排位位置，避免从海克斯乱斗切回排位时丢失筛选状态。
+      if (capability.filters.includes('position')) {
         if (targetPosition === 'none') {
           targetPosition = 'mid'
         }
-      } else {
-        targetPosition = 'none'
+      }
+
+      const query: ChampionDataQuery = {
+        source: targetSource,
+        mode: toChampionDataMode(targetMode),
+        ...(capability.filters.includes('region') ? { region: targetRegion } : {}),
+        ...(capability.filters.includes('position')
+          ? { position: toChampionDataPosition(targetPosition) }
+          : {}),
+        ...(capability.filters.includes('tier') ? { tier: targetTier } : {}),
+        ...(capability.filters.includes('patch') && nextVersion ? { patch: nextVersion } : {})
       }
 
       let updatedChampionsData: OpggChampionsResponse | null = null
+      let updatedOverviewData: ChampionDataOverview | null = null
+      let shouldShowChampionList = false
 
-      if (opts.force || opts.region || opts.mode || opts.version || opts.tier) {
-        const { data: championsData } = await queueKeeper.add(
+      if (
+        opts.force ||
+        opts.source ||
+        opts.region ||
+        opts.mode ||
+        opts.version ||
+        opts.tier ||
+        opts.position
+      ) {
+        const result = await queueKeeper.add(
           'default',
-          `opgg-load-champions:${generation}`,
-          ({ signal }) =>
-            og.api.getChampions(targetRegion, targetMode, {
-              tier: targetMode === 'arena' ? undefined : targetTier,
-              version: nextVersion,
-              signal
-            }),
+          'champion-data-load-overview',
+          ({ signal }) => championData.loadOverview(query, { signal }),
           { tags: ['opgg-group'] }
         )
 
-        updatedChampionsData = championsData
+        updatedOverviewData = unwrapResult(result, generation)
+        updatedChampionsData = toOpggChampionOverviewViewModel(updatedOverviewData)
+
+        if (targetChampionId && !capability.features.includes('champion-summary')) {
+          targetChampionId = null
+          shouldShowChampionList = true
+        }
+
+        // 切换模式、数据源或筛选条件后，原英雄可能不在新数据集中。
+        // 此时回到英雄列表，不要让一个缺失的详情把已成功加载的整个模式判定为不可用。
+        if (
+          targetChampionId &&
+          !updatedOverviewData.sections.champions.some(
+            (item) => item.championId === targetChampionId
+          )
+        ) {
+          targetChampionId = null
+          shouldShowChampionList = true
+        }
       }
 
       let updatedChampionData: OpggChampionBuildResponse | null = null
-
-      if (targetChampionId) {
-        const { data: championData } = await queueKeeper.add(
-          'default',
-          `opgg-load-champion:${generation}`,
-          ({ signal }) =>
-            og.api.getChampion(targetRegion, targetMode, targetChampionId, targetPosition, {
-              tier: targetMode === 'arena' ? undefined : targetTier,
-              version: nextVersion,
-              signal
-            }),
-          { tags: ['opgg-group'] }
-        )
-
-        updatedChampionData = championData
-      }
-
       let updatedKiwiAugmentsData: OpggAramMayhemChampionAugmentsResponse | null = null
 
-      // 特例判定
-      if (targetChampionId && targetMode === 'aram') {
-        const { data: kiwiAugmentsData } = await queueKeeper.add(
+      if (targetChampionId) {
+        const result = await queueKeeper.add(
           'default',
-          `opgg-load-kiwi-augments:${generation}`,
-          ({ signal }) => og.api.getAramMayhemChampionAugments(targetChampionId, { signal }),
+          'champion-data-load-details',
+          ({ signal }) => championData.loadDetails(query, targetChampionId, { signal }),
           { tags: ['opgg-group'] }
         )
-
-        updatedKiwiAugmentsData = kiwiAugmentsData
+        const details = unwrapResult(result, generation)
+        updatedChampionData = toOpggChampionDetailsViewModel(details)
+        updatedKiwiAugmentsData = toOpggMayhemAugmentsViewModel(
+          details,
+          toChampionDataMode(targetMode)
+        )
       }
 
-      if (generation !== updateGeneration || provider.value !== 'opgg') {
-        return false
-      }
+      if (generation !== updateGeneration || provider.value !== 'opgg') return false
 
       // commit
-      versions.value = versionResult.versions
       version.value = nextVersion
       region.value = targetRegion
       mode.value = targetMode
       tier.value = targetTier
       position.value = targetPosition
       championId.value = targetChampionId
+      if (shouldShowChampionList) currentTab.value = 'champions'
 
       if (updatedChampionsData) {
         champions.value = updatedChampionsData
+        overview.value = updatedOverviewData
       }
 
       if (updatedChampionData) {
         champion.value = updatedChampionData
+      } else if (!targetChampionId) {
+        champion.value = null
       }
 
       // 会在模式不匹配时主动清空
       kiwiAugments.value = updatedKiwiAugmentsData
       return true
     } catch (error) {
-      if (isAbortError(error) || generation !== updateGeneration || provider.value !== 'opgg') {
+      if (generation !== updateGeneration || provider.value !== 'opgg' || isAbortError(error)) {
+        return false
+      }
+
+      if (error instanceof ChampionDataUnavailableError) {
+        if (error.hasRequestFailure) message.error(() => t('opgg.view.dataUnavailable'))
         return false
       }
 
@@ -356,13 +555,11 @@ export function provideOpgg() {
       message.error(err.message || String(error))
       return false
     } finally {
-      if (generation === updateGeneration) {
-        isLoading.value = false
-      }
+      if (generation === updateGeneration) isLoading.value = false
     }
   }
 
-  /** 按当前 RESG provider 状态加载版本、英雄列表和可选详情。 */
+  /** 按当前 RESG 通道状态加载版本、英雄列表和可选详情。 */
   const updateResg = async (opts: {
     version?: string
     championId?: number
@@ -462,23 +659,72 @@ export function provideOpgg() {
     }
   }
 
-  const changeProvider = async (provider0: GuideProvider) => {
-    if (provider.value === provider0) {
+  /**
+   * 切换 champion-data 首选源（OP.GG / 101），并按新源可支持的模式重新加载。
+   *
+   * @param source 目标 champion-data 数据源。
+   * @param force 是否强制重新拉取；从 RESG 切回时 champion-data 状态可能已过期，需要为 `true`。
+   */
+  const changeChampionDataSource = async (source: ChampionDataSourceId, force: boolean) => {
+    if (!championDataStore.availability.sources[source].enabled) {
       return
     }
 
-    provider.value = provider0
-    await (provider0 === 'resg' ? updateResg({}) : update({}))
-  }
-
-  const changeMode = async (mode0: ModeType) => {
-    if (provider.value === 'opgg') {
-      await update({ mode: mode0 })
+    const nextMode = resolveSupportedMode(source, mode.value)
+    mode.value = nextMode
+    sourceChangeInProgress = true
+    try {
+      if (source !== preferredSource.value) {
+        await championData.setPreferredSource(source)
+      }
+      loadedPatchContext = null
+      await update({ source, mode: nextMode, force })
+    } finally {
+      sourceChangeInProgress = false
     }
   }
 
+  const changeSource = async (source: GuideSource) => {
+    if (source === activeSource.value) {
+      return
+    }
+
+    if (source === 'resg') {
+      cancel()
+      provider.value = 'resg'
+      await updateResg({})
+      return
+    }
+
+    if (provider.value === 'resg') {
+      cancel()
+      provider.value = 'opgg'
+    }
+    await changeChampionDataSource(source, true)
+  }
+
+  const changeMode = async (mode0: ModeType) => {
+    if (provider.value === 'resg') {
+      return
+    }
+
+    if (!getChampionDataCapability(preferredSource.value, toChampionDataMode(mode0))) {
+      return
+    }
+
+    await update({ mode: mode0 })
+  }
+
   const changePosition = async (position0: PositionType) => {
-    if (provider.value !== 'opgg' || mode.value !== 'ranked') {
+    if (provider.value === 'resg') {
+      return
+    }
+
+    const capability = getChampionDataCapability(
+      preferredSource.value,
+      toChampionDataMode(mode.value)
+    )
+    if (!capability?.filters.includes('position')) {
       return
     }
 
@@ -486,15 +732,19 @@ export function provideOpgg() {
   }
 
   const changeRegion = async (region0: RegionType) => {
-    if (provider.value === 'opgg') {
-      await update({ region: region0 })
+    if (provider.value === 'resg') {
+      return
     }
+
+    await update({ region: region0 })
   }
 
   const changeTier = async (tier0: TierType) => {
-    if (provider.value === 'opgg') {
-      await update({ tier: tier0 })
+    if (provider.value === 'resg') {
+      return
     }
+
+    await update({ tier: tier0 })
   }
 
   const changeVersion = async (version0: string) => {
@@ -510,12 +760,34 @@ export function provideOpgg() {
   }
 
   const cancel = () => {
-    updateGeneration += 1
+    updateGeneration++
     queueKeeper.cancelAll()
     isLoading.value = false
   }
 
   const setTab = (tab: 'champions' | 'champion', championId0?: number) => {
+    if (tab === 'champion') {
+      const targetChampionId = championId0 ?? championId.value
+      if (targetChampionId === null || targetChampionId === undefined) return
+
+      if (provider.value === 'resg') {
+        const hasResgChampion = resgChampions.value?.items.some(
+          (item) => item.id === targetChampionId
+        )
+        if (!hasResgChampion) return
+      } else {
+        const capability = getChampionDataCapability(
+          preferredSource.value,
+          toChampionDataMode(mode.value)
+        )
+        const hasChampionDetails =
+          capability?.features.includes('champion-summary') &&
+          overview.value?.sections.champions.some((item) => item.championId === targetChampionId)
+
+        if (!hasChampionDetails) return
+      }
+    }
+
     currentTab.value = tab
 
     if (championId0) {
@@ -529,6 +801,9 @@ export function provideOpgg() {
   }
 
   onMounted(() => {
+    if (mode.value !== savedMode) {
+      void championData.setPreferences({ mode: toChampionDataMode(mode.value) })
+    }
     refresh()
   })
 
@@ -536,13 +811,42 @@ export function provideOpgg() {
   watch(
     [flashPosition, mode, position, region, tier],
     ([flashPosition, mode, position, region, tier]) => {
-      og.updatePreferences({
+      void og.updatePreferences({
         flashPosition,
         mode,
         position,
         region,
         tier
       })
+      void championData.setPreferences({
+        mode: toChampionDataMode(mode),
+        position: toChampionDataPosition(position),
+        region,
+        tier
+      })
+    }
+  )
+
+  watch(
+    () =>
+      [
+        championDataStore.settings.preferredSource,
+        championDataStore.availability.sources.opgg.enabled,
+        championDataStore.availability.sources.qq101.enabled
+      ] as const,
+    ([source], [previousSource]) => {
+      if (sourceChangeInProgress) return
+
+      loadedPatchContext = null
+      // RESG 通道激活时不触发 champion-data 请求；切回时 changeSource 会强制刷新。
+      if (provider.value === 'resg') return
+      if (source !== previousSource) {
+        const nextMode = resolveSupportedMode(source, mode.value)
+        mode.value = nextMode
+        void update({ mode: nextMode, force: true })
+      } else {
+        void refresh()
+      }
     }
   )
 
@@ -597,7 +901,7 @@ export function provideOpgg() {
 
       let mode0 = mode.value
       let isUnsupportedMode = false
-      let isFakeKiwi = false
+      let isMayhem = false
 
       switch (active.gameMode) {
         case 'CLASSIC':
@@ -608,8 +912,8 @@ export function provideOpgg() {
           position.value = 'none'
           break
         case 'KIWI':
-          isFakeKiwi = true
-          mode0 = 'aram'
+          isMayhem = true
+          mode0 = 'aram_mayhem'
           position.value = 'none'
           break
         case 'CHERRY':
@@ -658,13 +962,19 @@ export function provideOpgg() {
         active.championId !== -3 /* cherry bravery */ &&
         !lcs.champSelect.disabledChampionIds.has(active.championId)
       ) {
-        if (isFakeKiwi) {
-          provider.value = ogs.frontendSettings.kiwiGuideProvider === 'resg' ? 'resg' : 'opgg'
+        // 进入海克斯大乱斗选人时按用户偏好选择数据通道。
+        if (isMayhem) {
+          const nextProvider: GuideProvider =
+            ogs.frontendSettings.kiwiGuideProvider === 'resg' ? 'resg' : 'opgg'
+          if (nextProvider !== provider.value) {
+            cancel()
+            provider.value = nextProvider
+          }
         }
 
-        // RESG provider 只覆盖大乱斗；其它模式保持当前列表，不回退到隐藏的 OP.GG 请求。
+        // RESG 通道只覆盖大乱斗；其它模式保持当前列表，不回退到隐藏的 champion-data 请求。
         if (provider.value === 'resg') {
-          if (mode0 !== 'aram') {
+          if (mode0 !== 'aram' && mode0 !== RESG_MODE) {
             return
           }
 
@@ -682,7 +992,7 @@ export function provideOpgg() {
           ) {
             writeItemSet(itemSet, {
               position: position0,
-              mode: 'aram',
+              mode: RESG_MODE,
               region: region.value,
               tier: tier.value
             })
@@ -693,22 +1003,20 @@ export function provideOpgg() {
         currentTab.value = 'champion'
         championId.value = active.championId
 
-        const didUpdate = await update({
+        const updated = await update({
           championId: active.championId,
           mode: mode0,
           position: position0
         })
 
-        if (!didUpdate || provider.value !== 'opgg') {
-          return
-        }
+        if (!updated || provider.value !== 'opgg') return
 
         // 处理自动化
         const summonerSpells = champion.value?.data.summoner_spells
         const runes = champion.value?.data.runes
 
         if (
-          !isFakeKiwi &&
+          !isMayhem &&
           !active.hasAutoSpellsConfig &&
           summonerSpells &&
           summonerSpells[0] &&
@@ -718,7 +1026,7 @@ export function provideOpgg() {
         }
 
         if (
-          !isFakeKiwi &&
+          !isMayhem &&
           !active.hasAutoRunesConfig &&
           runes &&
           runes[0] &&
@@ -743,12 +1051,14 @@ export function provideOpgg() {
   provide(OpggContextKey, {
     currentTab,
     provider,
+    activeSource,
 
     setTab,
 
     flashPosition,
     setFlashPosition,
 
+    preferredSource,
     championId,
     mode,
     position,
@@ -759,18 +1069,24 @@ export function provideOpgg() {
 
     versions,
     champions,
+    overview,
     champion,
 
     kiwiAugments,
+
     resgVersions,
     resgVersion,
     resgChampions,
     resgGuide,
     resgError,
 
+    effectiveSource,
+    fallbackReason,
+    isDataUnavailable,
+
     isLoading,
 
-    changeProvider,
+    changeSource,
     changeMode,
     changePosition,
     changeRegion,

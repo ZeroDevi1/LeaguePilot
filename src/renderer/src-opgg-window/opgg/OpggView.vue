@@ -2,24 +2,35 @@
   <div class="relative flex flex-col px-2 pt-1 pb-2">
     <OpggTabAndFilters class="mb-1" />
 
-    <KeepAlive>
-      <ResgChampionTable
-        v-if="provider === 'resg' && currentTab === 'champions'"
-        class="min-h-0 flex-1"
-      />
-      <OpggChampionTable v-else-if="currentTab === 'champions'" class="min-h-0 flex-1" />
-      <ResgChampion
-        v-else-if="provider === 'resg' && currentTab === 'champion'"
-        class="min-h-0 flex-1"
-      />
-      <OpggChampion v-else-if="currentTab === 'champion'" class="min-h-0 flex-1" />
+    <KeepAlive v-if="provider === 'resg'">
+      <ResgChampionTable v-if="currentTab === 'champions'" class="min-h-0 flex-1" />
+      <ResgChampion v-else-if="currentTab === 'champion'" class="min-h-0 flex-1" />
     </KeepAlive>
+    <NEmpty
+      v-else-if="isDataUnavailable"
+      class="flex min-h-0 flex-1 items-center justify-center"
+      :description="t('opgg.view.dataUnavailable')"
+    />
+    <template v-else>
+      <MayhemOverview
+        v-if="currentTab === 'champions' && mode === 'aram_mayhem'"
+        class="min-h-0 flex-1"
+      />
+      <KeepAlive v-else>
+        <OpggChampionTable v-if="currentTab === 'champions'" class="min-h-0 flex-1" />
+        <OpggChampion class="min-h-0 flex-1" v-else-if="currentTab === 'champion'" />
+      </KeepAlive>
+    </template>
 
     <SessionChampions />
   </div>
 </template>
 
 <script setup lang="ts">
+import { useTranslation } from 'i18next-vue'
+import { NEmpty } from 'naive-ui'
+
+import MayhemOverview from './MayhemOverview.vue'
 import OpggChampion from './OpggChampion.vue'
 import OpggChampionTable from './OpggChampionTable.vue'
 import OpggTabAndFilters from './OpggTabAndFilters.vue'
@@ -28,5 +39,6 @@ import ResgChampionTable from './ResgChampionTable.vue'
 import { useOpgg } from './context'
 import SessionChampions from './widgets/SessionChampions.vue'
 
-const { currentTab, provider } = useOpgg()
+const { t } = useTranslation()
+const { currentTab, mode, provider, isDataUnavailable } = useOpgg()
 </script>

@@ -2,11 +2,10 @@ import { IAkariShardInitDispose, Shard } from '@shared/akari-shard'
 import { ArammetaApi } from '@shared/data-sources/arammeta'
 import { GtimgApi } from '@shared/data-sources/gtimg'
 import { OpggHttpApiAxiosHelper } from '@shared/http-api-axios-helper/opgg'
-import axios from 'axios'
 
-import { AppCommonMain } from '../app-common'
 import { AkariLogger, LoggerFactoryMain } from '../logger-factory'
 import { MobxUtilsMain } from '../mobx-utils'
+import { NetworkMain } from '../network'
 import { ExtraAssetsRefreshController } from './asset-refresh-controller'
 import {
   ARAMMETA_HEX_CATALOG_UPDATE_INTERVAL,
@@ -38,34 +37,33 @@ export class ExtraAssetsMain implements IAkariShardInitDispose {
   public readonly opgg = new ExtraAssetsStateOpgg()
   public readonly arammeta = new ExtraAssetsStateArammeta()
 
-  private readonly _gtimgApi = new GtimgApi()
-
-  get gtimgApi() {
-    return this._gtimgApi
-  }
-
-  private readonly _opggHttpClient = axios.create()
-  private readonly _opggApi = new OpggHttpApiAxiosHelper(this._opggHttpClient)
-  private readonly _arammetaApi = new ArammetaApi()
-
   constructor(
-    private readonly _appCommon: AppCommonMain,
+    private readonly _network: NetworkMain,
     _loggerFactory: LoggerFactoryMain,
     private readonly _mobxUtils: MobxUtilsMain
   ) {
     this._logger = _loggerFactory.create(ExtraAssetsMain.id)
     this._context = {
       namespace: ExtraAssetsMain.id,
-      appCommon: this._appCommon,
       logger: this._logger,
       mobxUtils: this._mobxUtils,
       gtimg: this.gtimg,
       opgg: this.opgg,
       arammeta: this.arammeta,
-      gtimgApi: this._gtimgApi,
-      opggApi: this._opggApi,
-      opggHttpClient: this._opggHttpClient,
-      arammetaApi: this._arammetaApi
+      gtimgApi: new GtimgApi(
+        this._network.createAxiosClient({
+          baseURL: GtimgApi.BASE_URL,
+          headers: { 'User-Agent': GtimgApi.USER_AGENT }
+        })
+      ),
+      opggApi: new OpggHttpApiAxiosHelper(this._network.createAxiosClient()),
+      arammetaApi: new ArammetaApi(
+        this._network.createAxiosClient({
+          baseURL: ArammetaApi.BASE_URL,
+          timeout: 30_000,
+          headers: { 'User-Agent': ArammetaApi.USER_AGENT }
+        })
+      )
     }
     this._refreshController = new ExtraAssetsRefreshController(this._context)
   }

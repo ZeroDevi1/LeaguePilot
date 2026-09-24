@@ -17,7 +17,7 @@
         class="text-xs text-black/85 dark:text-white/85"
         :class="{ 'brightness-80': ws.focus === 'blurred' }"
       >
-        {{ $t('appName', { ns: 'common' }) }} - {{ provider === 'resg' ? 'RESG' : 'OP.GG' }}
+        {{ $t('appName', { ns: 'common' }) }} - {{ t('opgg.titlebar.title') }}
       </span>
     </div>
     <div
@@ -66,10 +66,7 @@ import { Close as CloseIcon } from '@vicons/ionicons5'
 import { useTranslation } from 'i18next-vue'
 import { NIcon } from 'naive-ui'
 
-import { useOpgg } from './context'
-
 const { t } = useTranslation()
-const { provider } = useOpgg()
 
 const wm = useInstance(WindowManagerRenderer)
 const ws = useOpggWindowStore()

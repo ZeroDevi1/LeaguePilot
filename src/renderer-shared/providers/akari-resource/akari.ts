@@ -112,7 +112,9 @@ export function createAkariResourceProvider(): AkariResourceProviderValue {
           )
         }
 
-        return leagueClient.gameData.champions[id]?.name || id.toString()
+        return (
+          leagueClient.gameData.champions[id]?.name || extra.heroListMap[id]?.name || id.toString()
+        )
       },
       icon(id: number) {
         if (id === -3) {
@@ -121,6 +123,16 @@ export function createAkariResourceProvider(): AkariResourceProviderValue {
             iconPath: braveryIcon,
             source: 'url',
             variant: 'bravery'
+          }
+        }
+
+        const gtimgHero = extra.heroListMap[id]
+        if (!leagueClient.isConnected && gtimgHero?.alias) {
+          return {
+            id,
+            iconPath: `https://game.gtimg.cn/images/lol/act/img/champion/${gtimgHero.alias}.png`,
+            source: 'url',
+            variant: 'default'
           }
         }
 
@@ -273,9 +285,10 @@ export function createAkariResourceProvider(): AkariResourceProviderValue {
           }
         }
 
+        // LCU 缺失时回退到 gtimg kiwi 数据；图标路径需收成绝对 URL，名称按当前语言选择。
         const kiwi = extra.kiwiAugmentsMap?.[id]
         const iconPath = kiwi ? resolveGtimgAssetUrl(kiwi.small_Icon || kiwi.large_Icon) : null
-        if (!kiwi || !iconPath) {
+        if (!kiwi || !iconPath || !kiwi.level) {
           return null
         }
 
@@ -287,7 +300,7 @@ export function createAkariResourceProvider(): AkariResourceProviderValue {
               : kiwi.name_en || kiwi.name_cn,
           iconPath,
           rarity: kiwi.level as AugmentRarity,
-          tooltipHtml: kiwi.tooltip || undefined
+          tooltipHtml: app.settings.locale === 'zh-CN' ? kiwi.tooltip || undefined : undefined
         }
       }
     }

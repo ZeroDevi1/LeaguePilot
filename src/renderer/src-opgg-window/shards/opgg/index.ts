@@ -3,7 +3,6 @@ import { LeagueClientRenderer } from '@renderer-shared/shards/league-client'
 import { LoggerRenderer } from '@renderer-shared/shards/logger'
 import { SettingUtilsRenderer } from '@renderer-shared/shards/setting-utils'
 import { Dep, Shard } from '@shared/akari-shard'
-import { OpggHttpApiAxiosHelper } from '@shared/http-api-axios-helper/opgg'
 import { ResgHttpApiAxiosHelper } from '@shared/http-api-axios-helper/resg'
 import axios from 'axios'
 
@@ -21,16 +20,17 @@ import { syncOpggSettings } from './settings-sync'
 export class OpggRenderer {
   static id = OPGG_RENDERER_NAMESPACE
 
-  /** OP.GG 请求使用的独立 Axios 实例。 */
-  private readonly _httpClient = axios.create()
-  /** 通过 main 进程受限代理访问 RESG 的 Axios 实例。 */
+  /**
+   * 通过 main 进程受限代理访问 RESG 的 Axios 实例。
+   *
+   * OP.GG / 101 数据已迁移到 main 进程的 champion-data 服务；RESG 仍走 renderer 侧的
+   * `akari://resg` 代理，因为其静态 ESM 模块需要由 main 进程按固定路径白名单转发。
+   */
   private readonly _resgHttpClient = axios.create({
     baseURL: 'akari://resg/api/v1',
     adapter: 'fetch'
   })
 
-  /** OP.GG 公共 API 客户端。 */
-  public readonly api = new OpggHttpApiAxiosHelper(this._httpClient)
   /** RESG 公共 API 客户端。 */
   private readonly _resgApi = new ResgHttpApiAxiosHelper(this._resgHttpClient)
 
@@ -53,8 +53,7 @@ export class OpggRenderer {
     this._context = {
       settingUtils: this._settingUtils,
       leagueClient: this._leagueClient,
-      logger: this._logger,
-      httpClient: this._httpClient
+      logger: this._logger
     }
     this._preferencesService = new OpggPreferencesService(this._context)
     this._watcher = new OpggWatcher(this._context)
