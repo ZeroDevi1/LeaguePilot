@@ -164,10 +164,10 @@ export interface ResgRecommendedAugment extends ResgAugment {
 }
 
 /**
- * RESG 英雄详情原始响应中本功能使用的字段。
+ * RESG 英雄详情在适配器展开后使用的字段。
  *
- * 当前静态模块还会把若干对象和统计字段压缩为短名，例如 `b` / `si` / `ia` / `ra` / `ac` 以及 `tm` / `wr`。
- * 这些短名由 data adapter 在信任边界展开，不进入应用内模型。
+ * 线上模块先把这些段压缩为短名 `b` / `si` / `ia` / `ra` / `ac`。16.17 起，短名下面的每一行又是位置元组，
+ * 胜率和选取率是万分比整数。data adapter 会先把元组还原成这里描述的对象，再做信任边界校验；两种形状都不进入应用内模型。
  */
 export interface ResgChampionResponse {
   /** 英雄基础信息。 */

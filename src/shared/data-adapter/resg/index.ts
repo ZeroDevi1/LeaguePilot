@@ -13,6 +13,8 @@ import type {
   ResgVersionItem
 } from '@shared/types/resg'
 
+import { expandResgCompactChampionDetail } from './compact-detail'
+
 /** RESG 当前静态模块把样本数压缩为 `tm`；旧模块使用 `totalMatches`。 */
 const TOTAL_MATCHES_KEYS = ['totalMatches', 'tm'] as const
 /** RESG 当前静态模块把胜场数压缩为 `wm`；旧模块使用 `winMatches`。 */
@@ -98,8 +100,8 @@ export function selectLatestResgVersion(versions: ResgVersionItem[]): string | n
  * 把 RESG 英雄详情转换为攻略窗口使用的稳定视图模型。
  *
  * 转换会在信任边界校验所有被消费的嵌套字段，去掉传输层图标路径，并把当前版本的海克斯关联出装整理成可展示和写入客户端的装备组。
- * 当前模块把 `builds` / `startingItems` / `itemAnalysis` / `recommendedAugments` / `augmentCombos`
- * 压缩为 `b` / `si` / `ia` / `ra` / `ac`，统计字段同步压缩为短名；旧全称响应仍然有效。
+ * 当前模块把详情段压缩为 `b` / `si` / `ia` / `ra` / `ac`。16.17 起这些段里的每一行又进一步变成位置元组，胜率和选取率用万分比整数表示。
+ * 适配器会先把元组展开成对象，再接受旧的全称或短名对象；两种历史响应都仍然有效。
  *
  * @param response 未经信任的 RESG 英雄详情 JSON。
  * @param version 该响应对应的 RESG 数据版本。
@@ -109,20 +111,21 @@ export function adaptResgChampionGuide(
   response: unknown,
   version: string
 ): ResgChampionGuide | null {
-  if (!isRecord(response)) {
+  const source = expandResgCompactChampionDetail(response)
+  if (!isRecord(source)) {
     return null
   }
 
-  const champion = toChampionSummary(response.champion)
+  const champion = toChampionSummary(source.champion)
   if (!champion) {
     return null
   }
 
-  const builds = asRecord(readField(response, ['builds', 'b']))
-  const itemAnalysis = asRecord(readField(response, ['itemAnalysis', 'ia']))
-  const recommendedAugments = readField(response, ['recommendedAugments', 'ra'])
-  const startingItems = readField(response, ['startingItems', 'si'])
-  const augmentGroups = readField(response, ['augmentCombos', 'ac'])
+  const builds = asRecord(readField(source, ['builds', 'b']))
+  const itemAnalysis = asRecord(readField(source, ['itemAnalysis', 'ia']))
+  const recommendedAugments = readField(source, ['recommendedAugments', 'ra'])
+  const startingItems = readField(source, ['startingItems', 'si'])
+  const augmentGroups = readField(source, ['augmentCombos', 'ac'])
   const augmentNameById = toAugmentNameById(recommendedAugments)
   const augmentCombos = toGuideAugmentCombos(augmentGroups, augmentNameById)
   const itemCombos = toGuideItemCombos(itemAnalysis.combos)

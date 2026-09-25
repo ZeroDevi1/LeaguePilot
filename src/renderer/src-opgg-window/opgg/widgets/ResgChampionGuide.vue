@@ -102,7 +102,7 @@
         <div v-for="augment in visibleAugments" :key="augment.id" class="guide-row">
           <div class="guide-rank">#{{ augment.rank }}</div>
           <AugmentDisplay :size="28" :augment-id="augment.id" />
-          <span class="truncate text-xs">{{ augment.name }}</span>
+          <span class="truncate text-xs">{{ augmentLabel(augment.id, augment.name) }}</span>
           <RateStats
             :play="augment.play"
             :win-rate="augment.winRate"
@@ -125,7 +125,7 @@
         <div v-for="item in visibleItems" :key="item.id" class="guide-row">
           <div class="guide-rank">#{{ item.rank }}</div>
           <ItemDisplay :size="28" :item-id="item.id" />
-          <span class="truncate text-xs">{{ item.name }}</span>
+          <span class="truncate text-xs">{{ itemLabel(item.id, item.name) }}</span>
           <RateStats
             :play="item.play"
             :win="item.win"
@@ -188,9 +188,7 @@
                 :size="30"
                 :augment-id="augmentId"
               />
-              <span class="ml-1 truncate text-xs">{{
-                combo.augmentNames.filter(Boolean).join(' · ')
-              }}</span>
+              <span class="ml-1 truncate text-xs">{{ augmentComboLabel(combo) }}</span>
               <RateStats :play="combo.play" :win-rate="combo.winRate" />
             </div>
             <div
@@ -244,9 +242,7 @@
           <div class="flex gap-1">
             <ItemDisplay v-for="itemId in combo.ids" :key="itemId" :size="30" :item-id="itemId" />
           </div>
-          <span class="min-w-0 flex-1 truncate text-xs">{{
-            combo.names.filter(Boolean).join(' · ')
-          }}</span>
+          <span class="min-w-0 flex-1 truncate text-xs">{{ itemComboLabel(combo) }}</span>
           <RateStats :play="combo.play" :win-rate="combo.winRate" :pick-rate="combo.pickRate" />
         </div>
         <NButton
@@ -267,8 +263,9 @@
 import AugmentDisplay from '@renderer-shared/components/widgets/AugmentDisplay.vue'
 import ItemDisplay from '@renderer-shared/components/widgets/ItemDisplay.vue'
 import SummonerSpellDisplay from '@renderer-shared/components/widgets/SummonerSpellDisplay.vue'
+import { useAkariResourceProvider } from '@renderer-shared/providers/akari-resource'
 import { useLeagueClientStore } from '@renderer-shared/shards/league-client/store'
-import type { ResgGuideAugmentCombo } from '@shared/types/resg'
+import type { ResgGuideAugmentCombo, ResgGuideItemCombo } from '@shared/types/resg'
 import { useTranslation } from 'i18next-vue'
 import { NAlert, NButton, NSelect, NTag } from 'naive-ui'
 import { computed, defineComponent, h, type PropType, ref, watch } from 'vue'
@@ -326,6 +323,70 @@ const { resgGuide, resgError, flashPosition, position, region, tier } = useOpgg(
 const { setSummonerSpells, writeItemSet } = useLoadout()
 const { t } = useTranslation()
 const leagueClientStore = useLeagueClientStore()
+const resources = useAkariResourceProvider()
+
+/**
+ * 解析海克斯显示名。
+ *
+ * 16.17 起 RESG 详情元组只保留 Riot ID，名称留空。响应里已有名称时优先使用，否则回退到客户端资源表。
+ *
+ * @param id Riot 海克斯 ID。
+ * @param name RESG 响应中的名称；紧凑模块为空字符串。
+ * @returns 可展示的名称；资源表也没有时返回空字符串，避免把纯数字 ID 显示成名字。
+ */
+function augmentLabel(id: number, name: string): string {
+  const provided = name.trim()
+  if (provided) {
+    return provided
+  }
+
+  const resolved = resources.augments.name(id)
+  return resolved === String(id) ? '' : resolved
+}
+
+/**
+ * 解析装备显示名。
+ *
+ * 16.17 起 RESG 详情元组只保留装备 ID。响应里已有名称时优先使用，否则回退到客户端装备数据。
+ *
+ * @param id Riot 装备 ID。
+ * @param name RESG 响应中的名称；紧凑模块为空字符串。
+ * @returns 可展示的装备名；客户端还没有这份装备数据时返回空字符串。
+ */
+function itemLabel(id: number, name: string): string {
+  const provided = name.trim()
+  if (provided) {
+    return provided
+  }
+
+  return resources.items.display(id)?.name ?? ''
+}
+
+/**
+ * 拼接一组海克斯组合的显示名。
+ *
+ * @param combo 标准化后的海克斯组合，名称与 ID 按相同顺序排列。
+ * @returns 用间隔号连接的名称；全都无法解析时返回空字符串。
+ */
+function augmentComboLabel(combo: ResgGuideAugmentCombo): string {
+  return combo.augmentIds
+    .map((id, index) => augmentLabel(id, combo.augmentNames[index] ?? ''))
+    .filter((name) => name.length > 0)
+    .join(' · ')
+}
+
+/**
+ * 拼接一套核心装备组合的显示名。
+ *
+ * @param combo 标准化后的装备组合，名称与 ID 按相同顺序排列。
+ * @returns 用间隔号连接的装备名；全都无法解析时返回空字符串。
+ */
+function itemComboLabel(combo: ResgGuideItemCombo): string {
+  return combo.ids
+    .map((id, index) => itemLabel(id, combo.names[index] ?? ''))
+    .filter((name) => name.length > 0)
+    .join(' · ')
+}
 
 const augmentComboSizes = computed(() =>
   [...new Set(resgGuide.value?.augmentCombos.map((combo) => combo.size) ?? [])].toSorted()

@@ -609,6 +609,94 @@ describe('RESG data adapter', () => {
     expect(guide && isResgGuideUsable(guide)).toBe(true)
   })
 
+  it('expands positional champion detail tuples from current RESG modules', () => {
+    const guide = adaptResgChampionGuide(
+      {
+        champion: {
+          id: 887,
+          name: '灵罗娃娃',
+          title: '格温',
+          alias: 'Gwen',
+          roles: ['fighter'],
+          tm: 214390,
+          tier: 'T0'
+        },
+        b: {
+          SPELLS: [
+            [1, [4, 32], 172051, 0, 5000, 7500],
+            [2, [4, 6], 100, 0, 20000, 2500]
+          ],
+          SKILL_ORDER: [[1, ['Q', 'E'], 193929, 0, 5000, 7500]],
+          BOOTS: [[1, [3008], 61448, 0, 5000, 2500]]
+        },
+        si: [[1, [3147], 18229, 10116, 5000, 2500]],
+        ra: [[2132, 2, 45675, 26544, 5000, 2500, 5000, 224, 5611, 6011, '高']],
+        ia: {
+          items: [[3115, 160627, 90488, 5000, 7500]],
+          combos: {
+            '2': [[1, [2510, 3115], 2285, 1400, 7500, 2500]]
+          }
+        },
+        ac: {
+          '2': [[122, [1129, 2132], 8128, 4866, 5000, 400, 2, [[[2510, 3115], 2285, 7500]]]]
+        }
+      },
+      '16.18'
+    )
+
+    expect(guide?.spells).toHaveLength(1)
+    expect(guide?.spells[0]).toMatchObject({
+      ids: [4, 32],
+      play: 172051,
+      winRate: 0.5,
+      pickRate: 0.75
+    })
+    expect(guide?.skillOrders[0]).toMatchObject({
+      ids: [],
+      names: ['Q', 'E'],
+      winRate: 0.5,
+      pickRate: 0.75
+    })
+    expect(guide?.boots[0].ids).toEqual([3008])
+    expect(guide?.starterItems[0]).toMatchObject({ ids: [3147], play: 18229, winRate: 0.5 })
+    expect(guide?.augments[0]).toMatchObject({
+      id: 2132,
+      name: '',
+      play: 45675,
+      winRate: 0.5,
+      pickRate: 0.25
+    })
+    expect(guide?.items[0]).toMatchObject({
+      rank: 1,
+      id: 3115,
+      play: 160627,
+      win: 90488,
+      winRate: 0.5,
+      pickRate: 0.75
+    })
+    expect(guide?.itemCombos[0]).toMatchObject({
+      rank: 1,
+      size: 2,
+      ids: [2510, 3115],
+      winRate: 0.75,
+      pickRate: 0.25
+    })
+    expect(guide?.augmentCombos[0]).toMatchObject({
+      rank: 1,
+      size: 2,
+      augmentIds: [1129, 2132],
+      play: 8128,
+      winRate: 0.5
+    })
+    expect(guide?.augmentCombos[0].builds[0]).toMatchObject({
+      ids: [2510, 3115],
+      play: 2285,
+      winRate: 0.75
+    })
+    expect(guide?.itemBuilds[0].ids).toEqual([2510, 3115])
+    expect(guide && isResgGuideUsable(guide)).toBe(true)
+  })
+
   it('rejects malformed champion details and recognizes empty placeholders', () => {
     expect(
       adaptResgChampionGuide(
